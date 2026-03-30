@@ -1,0 +1,1015 @@
+<!-- ==============================================================
+     EASTER SAGA – TV FRAME VERSION (Full)
+     - TV-Hintergrundbild im Wrapper (zoombar)
+     - Canvas exakt auf TV-Screen gemappt
+     - Pro Level eigener Canvas-Hintergrund (Bild-URL Platzhalter)
+     - Videos im Start & Finale (Autoplay muted playsinline)
+     - Gewinnspiel-CTA: Score einsenden an medbonet@medbo.de (sehr prominent)
+============================================================== -->
+<div id="easter-saga-wrapper"></div>
+
+<style>
+  #easter-saga-wrapper{
+    position:relative;
+    width:min(1200px, 96vw);
+    aspect-ratio: 16 / 9;
+    margin: 70px auto;
+    border-radius: 14px;
+    overflow:hidden;
+
+    /* Placeholder: Wrapper Background (Room/TV photo) */
+    background-image: url("https://www.medbo.de/fileadmin/user_upload/Gemini_Generated_Image_2xf18y2xf18y2xf1.png");
+    /* Zoom rein, damit TV groesser wirkt (anpassen nach Geschmack) */
+    background-size: 140% auto;
+    background-position: 50% 42%;
+    background-repeat:no-repeat;
+
+    box-shadow: 0 0 25px rgba(60,242,255,0.22), 0 0 90px rgba(0,0,0,0.65);
+    border: 2px solid rgba(60,242,255,0.35);
+  }
+
+  #easter-saga-wrapper::before{
+    content:"";
+    position:absolute; inset:0;
+    pointer-events:none;
+    background:
+      radial-gradient(circle at 50% 50%, rgba(255,255,255,0.06), transparent 55%),
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0 2px, transparent 2px 6px);
+    mix-blend-mode: overlay;
+    opacity: 0.55;
+  }
+
+  #easter-saga-wrapper canvas{
+    position:absolute;
+    border-radius: 10px;
+    background: transparent;
+    box-shadow: 0 0 18px rgba(0,229,255,0.25);
+    filter: contrast(1.05) saturate(1.08);
+    transform: perspective(900px) rotateX(1.2deg);
+    transform-origin: center;
+    touch-action:none;
+
+    cursor:url('https://cdn.jsdelivr.net/gh/akzhy/cursor-tools@master/cursors/svg/hand-open.svg'), grab;
+  }
+  #easter-saga-wrapper canvas.grabbing{
+    cursor:url('https://cdn.jsdelivr.net/gh/akzhy/cursor-tools@master/cursors/svg/hand-closed.svg'), grabbing;
+  }
+
+  #easter-saga-wrapper .tv-glass{
+    position:absolute;
+    border-radius: 12px;
+    pointer-events:none;
+    background:
+      radial-gradient(circle at 50% 20%, rgba(255,255,255,0.10), transparent 45%),
+      linear-gradient(180deg, rgba(255,255,255,0.03), rgba(0,0,0,0.18));
+    mix-blend-mode: screen;
+    opacity: 0.85;
+  }
+
+  /* Overlay */
+  .saga-overlay{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column;
+    justify-content:center; align-items:center;
+    text-align:center;
+    z-index:30;
+    padding:22px; box-sizing:border-box;
+
+    background: linear-gradient(180deg, rgba(0,0,0,0.58), rgba(0,0,0,0.36));
+    color:#e9f8ff;
+    font-family:Arial, Helvetica, sans-serif;
+    backdrop-filter: blur(2px);
+  }
+  .saga-overlay h1{
+    margin:0.2em 0 0.3em;
+    font-size:2.1rem;
+    color:#7effff;
+    text-shadow:0 0 8px #00f0ff, 0 0 18px #00a0ff;
+    letter-spacing:1px;
+  }
+  .saga-overlay p{
+    margin:0.5em 0;
+    line-height:1.5;
+    max-width:720px;
+    color:#cfeaff;
+  }
+  .saga-overlay button{
+    margin-top:1em;padding:0.65em 1.2em;border:none;border-radius:10px;
+    background:#00e5ff;color:#00222a;font-weight:bold;
+    box-shadow:0 0 12px #00e5ff77;cursor:pointer;font-size:1rem;
+  }
+
+  .saga-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:10px}
+  .saga-input{
+    padding:0.6em 0.7em;border-radius:10px;border:1px solid #7effff;
+    background:#0f1a22;color:#e9f8ff; min-width: 240px;
+  }
+
+  .saga-table{border-collapse:collapse;color:#e9f8ff;min-width:320px}
+  .saga-table th,.saga-table td{border:1px solid #7effff66;padding:6px 8px}
+
+  /* Prominenter Gewinnspiel CTA */
+  #saga-submit{
+    background: linear-gradient(90deg, #ffcc00, #ff4fd8);
+    color: #061018;
+    font-weight: 900;
+    letter-spacing: 0.6px;
+    border: 0;
+    padding: 14px 18px;
+    border-radius: 14px;
+    box-shadow:
+      0 0 0 3px rgba(255,255,255,0.12),
+      0 12px 34px rgba(255,79,216,0.26),
+      0 0 30px rgba(255,204,0,0.22);
+    transform: translateY(0);
+    transition: transform 0.12s ease, filter 0.12s ease;
+    min-width: 260px;
+  }
+  #saga-submit:hover{ filter: brightness(1.05); transform: translateY(-1px); }
+  #saga-submit:active{ transform: translateY(1px) scale(0.99); }
+  #saga-submit-hint{
+    margin-top: 10px;
+    font-size: 0.98rem;
+    color: #e8f7ff;
+    max-width: 760px;
+  }
+  #saga-lock{
+    margin-top: 14px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,204,0,0.35);
+    background: rgba(0,0,0,0.25);
+    max-width: 760px;
+    color: #cfeaff;
+    line-height: 1.45;
+  }
+  #saga-after-submit{
+    display:none;
+    margin-top: 14px;
+  }
+
+  .saga-video{
+    width:min(760px, 92%);
+    border-radius:12px;
+    margin:14px 0;
+    box-shadow:0 0 24px rgba(0,0,0,0.55);
+    border:1px solid rgba(126,255,255,0.25);
+    background: rgba(0,0,0,0.25);
+  }
+</style>
+
+<script>
+(() => {
+  const CANVAS_W = 960;
+  const CANVAS_H = 540;
+  const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
+  const $ = sel => document.querySelector(sel);
+  const createEl = (tag, cls, html) => {
+    const el = document.createElement(tag);
+    if (cls) el.className = cls;
+    if (html!==undefined) el.innerHTML = html;
+    return el;
+  };
+  const encode = s => encodeURIComponent(String(s));
+
+  /* -------------------- Placeholder URLs -------------------- */
+  const URLS = {
+    introVideo: "INTRO_VIDEO_URL",
+    finalVideo: "FINAL_VIDEO_URL",
+    levelBG1: "https://www.medbo.de/fileadmin/user_upload/Gemini_Generated_Image_vijk4fvijk4fvijk.png",
+    levelBG2: "LEVEL2_BG_URL",
+    levelBG3: "LEVEL3_BG_URL",
+  };
+
+  function loadImage(src){
+    const img = new Image();
+    img.decoding = "async";
+    img.src = src;
+    return img;
+  }
+  const BG = {
+    l1: loadImage(URLS.levelBG1),
+    l2: loadImage(URLS.levelBG2),
+    l3: loadImage(URLS.levelBG3),
+  };
+
+  /* -------------------- TV Mapping (0..1 relativ) -------------------- */
+  const TV = {
+    left: 0.305,
+    top:  0.235,
+    width: 0.40,
+    height:0.48
+  };
+
+  function applyTVLayout(wrapper, canvas, glass){
+    const W = wrapper.clientWidth, H = wrapper.clientHeight;
+    const l = Math.round(W * TV.left);
+    const t = Math.round(H * TV.top);
+    const w = Math.round(W * TV.width);
+    const h = Math.round(H * TV.height);
+
+    canvas.style.left = l + "px";
+    canvas.style.top  = t + "px";
+    canvas.style.width  = w + "px";
+    canvas.style.height = h + "px";
+
+    if (glass){
+      glass.style.left = (l-2) + "px";
+      glass.style.top  = (t-2) + "px";
+      glass.style.width  = (w+4) + "px";
+      glass.style.height = (h+4) + "px";
+    }
+  }
+
+  /* Draw cover-fit background image into canvas */
+  function drawCover(ctx, img, w, h){
+    if (!img || !img.complete || !img.naturalWidth) return false;
+    const iw = img.naturalWidth, ih = img.naturalHeight;
+    const s = Math.max(w/iw, h/ih);
+    const dw = iw*s, dh = ih*s;
+    const dx = (w - dw)/2;
+    const dy = (h - dh)/2;
+    ctx.drawImage(img, dx, dy, dw, dh);
+    return true;
+  }
+
+  /* -------------------- Saga Controller -------------------------- */
+  class EasterSaga {
+    constructor(wrapper){
+      this.wrapper = wrapper;
+      this.canvas = null; this.glass=null; this.ctx = null;
+      this.levelIndex = 0;
+      this.totalScore = 0;
+      this.levelScores = [0,0,0];
+
+      this.levels = [
+        {
+          id: "eggcatch",
+          title: "Level 1 – Easter Catch",
+          description:
+            "Fange Eier 🥚 in 25 Sekunden.<br>Korb 🧺 per Drag frei bewegen (auch nach oben).<br>Stinker 🦨 geben -3.",
+          factory: (onDone)=> new LevelEggCatch(this, onDone)
+        },
+        {
+          id: "runner",
+          title: "Level 2 – Easter Runner",
+          description:
+            "Springen (Klick/Tippen/Space).<br>2 Leben, Treffer kostet 1 Leben.<br>Stinker 🦨 geben -4. Starttempo sanfter.",
+          factory: (onDone)=> new LevelRunner(this, onDone)
+        },
+        {
+          id: "brick",
+          title: "Level 3 – Brick Breaker+",
+          description:
+            "2 Leben. 🍀 Multi‑Ball kommt garantiert. ⭐ braucht 2 Hits.<br>🍀 sammeln -> 2 Extra‑Bälle!",
+          factory: (onDone)=> new LevelBrick(this, onDone)
+        }
+      ];
+
+      this.showStartScreen();
+    }
+
+    ensureCanvas(){
+      if (this.canvas) return;
+      const canvas = document.createElement('canvas');
+      canvas.width = CANVAS_W;
+      canvas.height = CANVAS_H;
+      this.wrapper.appendChild(canvas);
+
+      const glass = createEl('div','tv-glass');
+      this.wrapper.appendChild(glass);
+
+      this.canvas = canvas;
+      this.glass = glass;
+      this.ctx = canvas.getContext('2d');
+
+      const relayout = ()=>applyTVLayout(this.wrapper, this.canvas, this.glass);
+      this._relayout = relayout;
+      relayout();
+      window.addEventListener('resize', relayout);
+    }
+
+    clearCanvas(){ if (this.ctx) this.ctx.clearRect(0,0,CANVAS_W,CANVAS_H); }
+
+    destroyCanvas(){
+      if (this.canvas && this.canvas.parentNode) this.canvas.parentNode.removeChild(this.canvas);
+      if (this.glass && this.glass.parentNode) this.glass.parentNode.removeChild(this.glass);
+      if (this._relayout) window.removeEventListener('resize', this._relayout);
+      this.canvas=null; this.glass=null; this.ctx=null;
+    }
+
+    showOverlay(title, html, buttonText, onClick){
+      this.hideOverlay();
+      const ov = createEl('div', 'saga-overlay');
+      ov.innerHTML = `
+        <h1>${title}</h1>
+        <p>${html}</p>
+        <button>${buttonText}</button>
+      `;
+      this.wrapper.appendChild(ov);
+      ov.querySelector('button').onclick = onClick;
+      this.overlay = ov;
+    }
+    hideOverlay(){
+      if (this.overlay && this.overlay.parentNode) this.overlay.parentNode.removeChild(this.overlay);
+      this.overlay = null;
+    }
+
+    showStartScreen(){
+      this.hideOverlay();
+      const ov = createEl('div','saga-overlay');
+      ov.innerHTML = `
+        <h1>EASTER SAGA</h1>
+        <p>
+          Willkommen! Das Spiel läuft “im TV”.<br>
+          <b>Gewinnspiel:</b> Am Ende bitte unbedingt deinen Score einsenden.
+        </p>
+
+        <video class="saga-video" autoplay muted playsinline loop>
+          <source src="${URLS.introVideo}" type="video/mp4">
+        </video>
+
+        <button id="saga-start">Spiel starten</button>
+        <p style="opacity:0.85; font-size:0.95rem; margin-top:10px;">
+          (Falls das Video nicht autoplayt: Browser blockt Audio/Autoplay — ist <b>muted</b>, sollte i.d.R. laufen.)
+        </p>
+      `;
+      this.wrapper.appendChild(ov);
+      this.overlay = ov;
+
+      $("#saga-start").onclick = ()=>{
+        this.levelIndex=0; this.totalScore=0; this.levelScores=[0,0,0];
+        this.showLevelIntro();
+      };
+    }
+
+    showLevelIntro(){
+      const L=this.levels[this.levelIndex];
+      this.showOverlay(L.title, L.description, "Level starten", ()=>this.startLevel());
+    }
+
+    startLevel(){
+      this.hideOverlay();
+      this.ensureCanvas();
+      this.clearCanvas();
+
+      const L=this.levels[this.levelIndex];
+      this.currentLevel = L.factory((score)=>{
+        this.levelScores[this.levelIndex]=score;
+        this.totalScore += score;
+        this.endLevelScreen(score);
+      });
+    }
+
+    endLevelScreen(score){
+      const idx=this.levelIndex;
+      const last = idx>=this.levels.length-1;
+      this.showOverlay(
+        `Level ${idx+1} abgeschlossen`,
+        `Level‑Score: <b>${score}</b><br>Gesamtscore bisher: <b>${this.totalScore}</b>`,
+        last ? "Zum Finale" : `Weiter zu Level ${idx+2}`,
+        ()=>{ if(last) this.showFinalScreen(); else { this.levelIndex++; this.showLevelIntro(); } }
+      );
+    }
+
+    showFinalScreen(){
+      this.hideOverlay();
+
+      const ov=createEl('div','saga-overlay');
+      ov.innerHTML=`
+        <h1>Finale – Gewinnspiel</h1>
+        <p>
+          Gesamtpunkte: <b>${this.totalScore}</b><br>
+          L1: ${this.levelScores[0]} | L2: ${this.levelScores[1]} | L3: ${this.levelScores[2]}
+        </p>
+
+        <video class="saga-video" autoplay muted playsinline loop>
+          <source src="${URLS.finalVideo}" type="video/mp4">
+        </video>
+
+        <div class="saga-row">
+          <input class="saga-input" id="saga-name" placeholder="Dein Name (Pflicht fürs Gewinnspiel)" maxlength="20">
+        </div>
+
+        <div class="saga-row" style="margin-top:12px">
+          <button id="saga-submit">Score einsenden (Gewinnspiel)</button>
+        </div>
+
+        <div id="saga-submit-hint">
+          Empfänger: <b>medbonet@medbo.de</b> — es öffnet sich deine Mail‑App mit ausgefüllter Nachricht.
+        </div>
+
+        <div id="saga-lock">
+          <b>Wichtig:</b> Um teilzunehmen, sende bitte deinen Score ab.<br>
+          Danach kannst du den Highscore ansehen und nochmal spielen.
+        </div>
+
+        <div class="saga-row" style="margin-top:10px">
+          <button id="saga-sent">Ich habe gesendet ✅</button>
+        </div>
+
+        <div id="saga-after-submit">
+          <div class="saga-row">
+            <button id="saga-save">Score lokal speichern</button>
+            <button id="saga-restart">Nochmal spielen</button>
+          </div>
+
+          <div id="saga-hs" style="margin-top:16px">
+            <table class="saga-table">
+              <thead><tr><th>#</th><th>Name</th><th>Punkte</th><th>Datum</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      `;
+      this.wrapper.appendChild(ov);
+      this.overlay=ov;
+
+      const recipient = "medbonet@medbo.de";
+
+      const buildMail = () => {
+        const rawName = ($("#saga-name").value || "").trim();
+        const name = rawName.slice(0,20);
+        const subject = `Easter Saga Score – ${name || "Unbekannt"}: ${this.totalScore}`;
+        const body =
+          `Name: ${name || "(bitte nachtragen)"}\n` +
+          `Gesamtscore: ${this.totalScore}\n` +
+          `Level 1: ${this.levelScores[0]}\n` +
+          `Level 2: ${this.levelScores[1]}\n` +
+          `Level 3: ${this.levelScores[2]}\n` +
+          `Datum: ${new Date().toLocaleString()}\n`;
+        return `mailto:${recipient}?subject=${encode(subject)}&body=${encode(body)}`;
+      };
+
+      const unlockAfterSubmit = () => {
+        $("#saga-after-submit").style.display = "block";
+        $("#saga-lock").style.display = "none";
+        $("#saga-submit").disabled = true;
+        $("#saga-sent").disabled = true;
+        $("#saga-submit").textContent = "Danke! Score wurde eingesendet";
+        this.renderHighScore();
+      };
+
+      $("#saga-submit").onclick = () => {
+        const name = ($("#saga-name").value || "").trim();
+        if (!name){
+          alert("Bitte trage deinen Namen ein (Pflicht fürs Gewinnspiel).");
+          $("#saga-name").focus();
+          return;
+        }
+        window.location.href = buildMail();
+        // Nutzer kann danach bestätigen (weil wir nicht prüfen können, ob Mail wirklich gesendet wurde)
+      };
+
+      $("#saga-sent").onclick = () => unlockAfterSubmit();
+
+      $("#saga-save").onclick = ()=>{
+        const name = ($("#saga-name").value || "Anonymous").trim();
+        this.saveHighScore(name, this.totalScore);
+        this.renderHighScore();
+        $("#saga-save").disabled = true;
+      };
+
+      $("#saga-restart").onclick=()=>{
+        this.destroyCanvas();
+        this.showStartScreen();
+      };
+    }
+
+    loadHighScores(){ const raw=localStorage.getItem('easterSagaHS'); return raw?JSON.parse(raw):[]; }
+    saveHighScore(name, score){
+      const list=this.loadHighScores();
+      list.push({name, score, date: Date.now()});
+      list.sort((a,b)=>b.score-a.score);
+      localStorage.setItem('easterSagaHS', JSON.stringify(list.slice(0,10)));
+    }
+    renderHighScore(){
+      if (!this.overlay) return;
+      const tb=this.overlay.querySelector('tbody');
+      if (!tb) return;
+      tb.innerHTML="";
+      this.loadHighScores().forEach((e,i)=>{
+        const d=new Date(e.date);
+        const tr=document.createElement('tr');
+        tr.innerHTML=`<td>${i+1}</td><td>${e.name}</td><td>${e.score}</td><td>${d.toLocaleDateString()}</td>`;
+        tb.appendChild(tr);
+      });
+    }
+  }
+
+  /* -------------------- LEVEL 1 -------------------- */
+  class LevelEggCatch{
+    constructor(saga,onDone){
+      this.saga=saga; this.onDone=onDone;
+      this.ctx=saga.ctx; this.canvas=saga.canvas;
+
+      this.items=[]; this.score=0; this.timeLeft=25;
+      this.spawnMs=700; this.lastSpawn=0; this.lastTick=performance.now();
+
+      this.basket={x:CANVAS_W/2,y:CANVAS_H-40,w:90,h:60};
+      this.drag={active:false,offsetX:0,offsetY:0};
+
+      this.catchSound=new Audio("https://freesound.org/data/previews/331/331904_3248244-lq.mp3");
+      this.catchSound.volume=0.05;
+
+      this._getPos=(cx,cy)=>{
+        const r=this.canvas.getBoundingClientRect();
+        return { x:(cx-r.left)*CANVAS_W/r.width, y:(cy-r.top)*CANVAS_H/r.height };
+      };
+
+      this._pd=(e)=>{
+        e.preventDefault();
+        const p=this._getPos(e.clientX,e.clientY);
+        const hit = (Math.abs(p.x-this.basket.x)<=this.basket.w/2) && (Math.abs(p.y-this.basket.y)<=this.basket.h/2);
+        if(hit){
+          this.drag.active=true;
+          this.drag.offsetX=p.x-this.basket.x;
+          this.drag.offsetY=p.y-this.basket.y;
+          this.canvas.classList.add('grabbing');
+          this.canvas.setPointerCapture(e.pointerId);
+        }
+      };
+      this._pm=(e)=>{
+        if(!this.drag.active) return;
+        e.preventDefault();
+        const p=this._getPos(e.clientX,e.clientY);
+        this.basket.x = clamp(p.x-this.drag.offsetX, 40, CANVAS_W-40);
+        this.basket.y = clamp(p.y-this.drag.offsetY, CANVAS_H*0.55, CANVAS_H-22);
+      };
+      this._pu=(e)=>{
+        if(!this.drag.active) return;
+        this.drag.active=false;
+        this.canvas.classList.remove('grabbing');
+        try{ this.canvas.releasePointerCapture(e.pointerId); }catch(_){}
+      };
+
+      this.canvas.addEventListener('pointerdown', this._pd, {passive:false});
+      this.canvas.addEventListener('pointermove', this._pm, {passive:false});
+      this.canvas.addEventListener('pointerup', this._pu, {passive:false});
+      this.canvas.addEventListener('pointercancel', this._pu, {passive:false});
+      this.canvas.addEventListener('pointerleave', this._pu, {passive:false});
+
+      this._timerId=setInterval(()=>{ this.timeLeft--; if(this.timeLeft<=0) this.finish(); },1000);
+      requestAnimationFrame(()=>this.loop());
+    }
+
+    spawnItem(){
+      const bad=Math.random()<0.18;
+      this.items.push({x:Math.random()*(CANVAS_W-20)+10,y:-10,vy:(bad?2.6:2.2)+Math.random()*1.6,r:14,bad});
+    }
+
+    loop(){
+      const now=performance.now();
+      const dt=(now-this.lastTick)/16; this.lastTick=now;
+      this.update(dt); this.render();
+      if(!this.done) requestAnimationFrame(()=>this.loop());
+    }
+
+    update(dt){
+      this.lastSpawn += dt*16;
+      if(this.lastSpawn>this.spawnMs){ this.lastSpawn=0; this.spawnItem(); }
+
+      for(let i=this.items.length-1;i>=0;i--){
+        const it=this.items[i];
+        it.y += it.vy*dt;
+        if(it.y-it.r>CANVAS_H){ this.items.splice(i,1); continue; }
+
+        const withinX = it.x+it.r>=this.basket.x-this.basket.w/2 && it.x-it.r<=this.basket.x+this.basket.w/2;
+        const withinY = it.y+it.r>=this.basket.y-this.basket.h/2 && it.y-it.r<=this.basket.y+this.basket.h/2;
+        if(withinX && withinY){
+          this.items.splice(i,1);
+          this.score = it.bad ? Math.max(0,this.score-3) : this.score+1;
+          this.catchSound.currentTime=0; this.catchSound.play();
+        }
+      }
+    }
+
+    render(){
+      const ctx=this.ctx;
+      ctx.clearRect(0,0,CANVAS_W,CANVAS_H);
+
+      // Level 1 background (placeholder image)
+      if (!drawCover(ctx, BG.l1, CANVAS_W, CANVAS_H)){
+        ctx.fillStyle="rgba(0,0,0,0.22)";
+        ctx.fillRect(0,0,CANVAS_W,CANVAS_H);
+      }
+      // subtle dark overlay for readability
+      ctx.save(); ctx.globalAlpha=0.18; ctx.fillStyle="#000"; ctx.fillRect(0,0,CANVAS_W,CANVAS_H); ctx.restore();
+
+      ctx.font=`28px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
+      ctx.textAlign="center"; ctx.textBaseline="middle";
+      for(const it of this.items) ctx.fillText(it.bad?"🦨":"🥚", it.x, it.y);
+
+      ctx.font=`38px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
+      ctx.fillText("🧺", this.basket.x, this.basket.y);
+
+      ctx.fillStyle="#7effff"; ctx.font="16px Arial";
+      ctx.textAlign="left"; ctx.fillText(`Punkte: ${this.score}`,10,20);
+      ctx.textAlign="right"; ctx.fillText(`Zeit: ${this.timeLeft}s`,CANVAS_W-10,20);
+    }
+
+    finish(){
+      if(this.done) return;
+      this.done=true;
+      clearInterval(this._timerId);
+      this.canvas.removeEventListener('pointerdown', this._pd);
+      this.canvas.removeEventListener('pointermove', this._pm);
+      this.canvas.removeEventListener('pointerup', this._pu);
+      this.canvas.removeEventListener('pointercancel', this._pu);
+      this.canvas.removeEventListener('pointerleave', this._pu);
+      this.onDone(this.score);
+    }
+  }
+
+  /* -------------------- LEVEL 2 -------------------- */
+  class LevelRunner{
+    constructor(saga,onDone){
+      this.saga=saga; this.onDone=onDone;
+      this.canvas=saga.canvas; this.ctx=saga.ctx;
+
+      this.GROUND_Y=CANVAS_H-40;
+      this.player={x:80,y:this.GROUND_Y-18,vy:0,w:36,h:36,onGround:true,jumps:0,maxJumps:2};
+      this.obstacles=[]; this.eggs=[]; this.bads=[];
+      this.score=0; this.timeLeft=25;
+
+      this.lives=2; this.invulnMs=0;
+
+      this.baseSpeed=2.85; this.speed=this.baseSpeed; this.speedRamp=0.0032; this.maxSpeed=7.4;
+      this.lastSpawnObs=0; this.lastSpawnEgg=0; this.lastSpawnBad=0;
+      this.lastTick=performance.now();
+
+      this.jumpSound=new Audio("https://freesound.org/data/previews/331/331904_3248244-lq.mp3"); this.jumpSound.volume=0.04;
+      this.pickSound=new Audio("https://freesound.org/data/previews/331/331904_3248244-lq.mp3"); this.pickSound.volume=0.05;
+      this.hitSound=new Audio("https://freesound.org/data/previews/331/331904_3248244-lq.mp3");  this.hitSound.volume=0.04;
+
+      this._jump=()=>{
+        if(this.player.jumps<this.player.maxJumps){
+          this.player.vy=-12;
+          this.player.jumps++;
+          this.jumpSound.currentTime=0; this.jumpSound.play();
+        }
+      };
+      this._md=()=>this._jump();
+      this._ts=(e)=>{ this._jump(); e.preventDefault(); };
+      this.canvas.addEventListener('mousedown', this._md);
+      this.canvas.addEventListener('touchstart', this._ts, {passive:false});
+      this._kd=(e)=>{ if(e.code==="Space") this._jump(); };
+      window.addEventListener('keydown', this._kd);
+
+      this._timerId=setInterval(()=>{ this.timeLeft--; if(this.timeLeft<=0) this.finish(); },1000);
+      requestAnimationFrame(()=>this.loop());
+    }
+
+    spawnObstacle(){
+      const tall=Math.random()<0.35;
+      this.obstacles.push({x:CANVAS_W+40,y:this.GROUND_Y-(tall?30:19),w:(tall?34:38),h:(tall?60:38),emoji:tall?"🌵":"🪨"});
+    }
+    spawnEgg(){ this.eggs.push({x:CANVAS_W+30,y:this.GROUND_Y-50-Math.random()*90,r:14}); }
+    spawnBad(){ this.bads.push({x:CANVAS_W+30,y:this.GROUND_Y-40-Math.random()*80,r:14}); }
+
+    loop(){
+      const now=performance.now();
+      const dt=(now-this.lastTick)/16; this.lastTick=now;
+      this.update(dt); this.render();
+      if(!this.done) requestAnimationFrame(()=>this.loop());
+    }
+
+    update(dt){
+      this.speed = Math.min(this.maxSpeed, this.speed + this.speedRamp*dt);
+      if(this.invulnMs>0) this.invulnMs -= dt*16;
+
+      this.player.vy += 0.6;
+      this.player.y += this.player.vy;
+      if(this.player.y + this.player.h/2 >= this.GROUND_Y){
+        this.player.y = this.GROUND_Y - this.player.h/2;
+        this.player.vy=0; this.player.onGround=true; this.player.jumps=0;
+      }
+
+      this.lastSpawnObs += dt*16;
+      if(this.lastSpawnObs > 1150 - (this.speed-this.baseSpeed)*60){ this.lastSpawnObs=0; this.spawnObstacle(); }
+      this.lastSpawnEgg += dt*16;
+      if(this.lastSpawnEgg > 1050){ this.lastSpawnEgg=0; this.spawnEgg(); }
+      this.lastSpawnBad += dt*16;
+      if(this.lastSpawnBad > 1800){ this.lastSpawnBad=0; this.spawnBad(); }
+
+      const scroll=this.speed*dt*3.2;
+      const a={x:this.player.x-this.player.w/2,y:this.player.y-this.player.h/2,w:this.player.w,h:this.player.h};
+
+      for(let i=this.obstacles.length-1;i>=0;i--){
+        const o=this.obstacles[i]; o.x -= scroll;
+        const b={x:o.x-o.w/2,y:o.y-o.h/2,w:o.w,h:o.h};
+        const hit = !(a.x+a.w<b.x||a.x>b.x+b.w||a.y+a.h<b.y||a.y>b.y+b.h);
+        if(hit && this.invulnMs<=0){
+          this.lives--;
+          this.invulnMs=900;
+          this.score=Math.max(0,this.score-2);
+          this.hitSound.currentTime=0; this.hitSound.play();
+          if(this.lives<=0){ this.finish(); return; }
+        }
+        if(o.x+o.w/2<0) this.obstacles.splice(i,1);
+      }
+
+      for(let i=this.eggs.length-1;i>=0;i--){
+        const e=this.eggs[i]; e.x -= scroll;
+        const dx=e.x-this.player.x, dy=e.y-this.player.y;
+        if(Math.hypot(dx,dy)< e.r + Math.max(this.player.w,this.player.h)/2){
+          this.eggs.splice(i,1);
+          this.score+=2;
+          this.pickSound.currentTime=0; this.pickSound.play();
+          continue;
+        }
+        if(e.x+e.r<0) this.eggs.splice(i,1);
+      }
+
+      for(let i=this.bads.length-1;i>=0;i--){
+        const e=this.bads[i]; e.x -= scroll;
+        const dx=e.x-this.player.x, dy=e.y-this.player.y;
+        if(Math.hypot(dx,dy)< e.r + Math.max(this.player.w,this.player.h)/2){
+          this.bads.splice(i,1);
+          this.score=Math.max(0,this.score-4);
+          this.pickSound.currentTime=0; this.pickSound.play();
+          continue;
+        }
+        if(e.x+e.r<0) this.bads.splice(i,1);
+      }
+    }
+
+    render(){
+      const ctx=this.ctx;
+      ctx.clearRect(0,0,CANVAS_W,CANVAS_H);
+
+      // Level 2 background
+      if (!drawCover(ctx, BG.l2, CANVAS_W, CANVAS_H)){
+        ctx.fillStyle="rgba(0,0,0,0.22)";
+        ctx.fillRect(0,0,CANVAS_W,CANVAS_H);
+      }
+      ctx.save(); ctx.globalAlpha=0.18; ctx.fillStyle="#000"; ctx.fillRect(0,0,CANVAS_W,CANVAS_H); ctx.restore();
+
+      ctx.fillStyle="rgba(42,52,70,0.55)";
+      ctx.fillRect(0,this.GROUND_Y, CANVAS_W, CANVAS_H-this.GROUND_Y);
+
+      ctx.textAlign="center"; ctx.textBaseline="middle";
+      ctx.font=`38px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
+      this.obstacles.forEach(o=>ctx.fillText(o.emoji,o.x,o.y));
+      ctx.font=`28px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
+      this.eggs.forEach(e=>ctx.fillText("🥚",e.x,e.y));
+      this.bads.forEach(e=>ctx.fillText("🦨",e.x,e.y));
+
+      ctx.save();
+      if(this.invulnMs>0 && Math.floor(performance.now()/90)%2===0) ctx.globalAlpha=0.35;
+      ctx.shadowColor="#7effff"; ctx.shadowBlur=12;
+      ctx.font=`36px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
+      ctx.fillText("🐰",this.player.x,this.player.y);
+      ctx.restore();
+
+      ctx.fillStyle="#7effff"; ctx.font="16px Arial";
+      ctx.textAlign="left"; ctx.fillText(`Punkte: ${this.score}`,10,20);
+      ctx.fillText(`Leben: ${this.lives}`,10,42);
+      ctx.textAlign="right"; ctx.fillText(`Zeit: ${this.timeLeft}s`,CANVAS_W-10,20);
+    }
+
+    finish(){
+      if(this.done) return;
+      this.done=true;
+      clearInterval(this._timerId);
+      this.canvas.removeEventListener('mousedown', this._md);
+      this.canvas.removeEventListener('touchstart', this._ts);
+      window.removeEventListener('keydown', this._kd);
+      this.onDone(this.score);
+    }
+  }
+
+  /* -------------------- LEVEL 3 (Guaranteed 🍀) -------------------- */
+  class LevelBrick{
+    constructor(saga,onDone){
+      this.saga=saga; this.onDone=onDone;
+      this.ctx=saga.ctx; this.canvas=saga.canvas;
+
+      this.PADDLE_W=84; this.PADDLE_H=30; this.BALL_R=9;
+      this.ROWS=5; this.COLS=9;
+      this.BRICK_W = Math.floor(CANVAS_W/this.COLS)-4; this.BRICK_H=20;
+
+      this.paddle={x:CANVAS_W/2,y:CANVAS_H-this.PADDLE_H-6,w:this.PADDLE_W,h:this.PADDLE_H};
+      this.balls=[this.makeBall()];
+      this.lives=2;
+      this.score=0;
+
+      this.bricks=this.makeBricks();
+      this.falling=[];
+      this.speedMul=1.0; this.speedMulRamp=0.0006;
+
+      this.bricksKilled=0;
+      this.powerUpsDropped=0;
+
+      this.hit=new Audio("https://freesound.org/data/previews/331/331904_3248244-lq.mp3"); this.hit.volume=0.04;
+      this.brk=new Audio("https://freesound.org/data/previews/331/331904_3248244-lq.mp3"); this.brk.volume=0.05;
+
+      const moveToX=(pageX)=>{
+        const rect=this.canvas.getBoundingClientRect();
+        const scaleX=CANVAS_W/rect.width;
+        const cx=(pageX-rect.left)*scaleX;
+        this.paddle.x=clamp(cx,this.PADDLE_W/2, CANVAS_W-this.PADDLE_W/2);
+      };
+      this._md=e=>{ moveToX(e.clientX); this.canvas.classList.add('grabbing'); };
+      this._mm=e=>{ if(e.buttons) moveToX(e.clientX); };
+      this._mu=()=>{ this.canvas.classList.remove('grabbing'); };
+      this._ts=e=>{ moveToX(e.touches[0].clientX); e.preventDefault(); };
+      this._tm=e=>{ moveToX(e.touches[0].clientX); e.preventDefault(); };
+
+      this.canvas.addEventListener('mousedown', this._md);
+      this.canvas.addEventListener('mousemove', this._mm);
+      this.canvas.addEventListener('mouseup', this._mu);
+      this.canvas.addEventListener('mouseleave', this._mu);
+      this.canvas.addEventListener('touchstart', this._ts, {passive:false});
+      this.canvas.addEventListener('touchmove', this._tm, {passive:false});
+
+      requestAnimationFrame(()=>this.loop());
+    }
+
+    makeBall(){
+      const angle=(Math.random()*Math.PI/2 - Math.PI/4) - Math.PI/2;
+      const speed=4.4;
+      return {x:CANVAS_W/2,y:CANVAS_H*0.62,vx:speed*Math.cos(angle),vy:speed*Math.sin(angle),r:this.BALL_R,out:false};
+    }
+
+    makeBricks(){
+      const em=["🥚","✨","💗"];
+      const a=[];
+      for(let r=0;r<this.ROWS;r++){
+        for(let c=0;c<this.COLS;c++){
+          const x=c*(this.BRICK_W+4)+2;
+          const y=r*(this.BRICK_H+4)+2;
+          const isGold=(Math.random()<0.14)&&r>=1;
+          a.push({x,y,w:this.BRICK_W,h:this.BRICK_H,emoji:isGold?"⭐":em[(r+c)%em.length],hp:isGold?2:1,alive:true});
+        }
+      }
+      return a;
+    }
+
+    maybeDropMultiball(x,y){
+      const FIRST_GUARANTEE_AT = 4; // garantiert spaetestens beim 4. Kill
+      const EVERY_KILLS = 7;        // danach spaetestens alle 7 Kills
+
+      const kill = this.bricksKilled;
+      const guaranteeFirst = (this.powerUpsDropped === 0 && kill >= FIRST_GUARANTEE_AT);
+      const guaranteePeriodic = (kill % EVERY_KILLS === 0);
+      const randomEarly = Math.random() < 0.18;
+
+      if (guaranteeFirst || guaranteePeriodic || randomEarly){
+        this.falling.push({x,y,vy:2.25,r:14,type:"multiball",emoji:"🍀"});
+        this.powerUpsDropped++;
+      }
+    }
+
+    loop(){ this.update(); this.render(); if(!this.done) requestAnimationFrame(()=>this.loop()); }
+
+    update(){
+      this.speedMul=Math.min(1.55, this.speedMul + this.speedMulRamp);
+
+      for(const b of this.balls){
+        b.x += b.vx * this.speedMul;
+        b.y += b.vy * this.speedMul;
+
+        if(b.x-b.r<=0){ b.x=b.r; b.vx*=-1; this.hit.currentTime=0; this.hit.play(); }
+        if(b.x+b.r>=CANVAS_W){ b.x=CANVAS_W-b.r; b.vx*=-1; this.hit.currentTime=0; this.hit.play(); }
+        if(b.y-b.r<=0){ b.y=b.r; b.vy*=-1; this.hit.currentTime=0; this.hit.play(); }
+
+        const p=this.paddle;
+        const pL=p.x-p.w/2, pR=p.x+p.w/2, pT=p.y, pB=p.y+p.h;
+        if(b.y+b.r>=pT && b.y-b.r<=pB && b.x>=pL && b.x<=pR && b.vy>0){
+          const offset=(b.x-p.x)/(p.w/2);
+          const angle=offset*(Math.PI/3)+Math.PI/2;
+          const speed=Math.hypot(b.vx,b.vy);
+          b.vx=speed*Math.cos(angle);
+          b.vy=-Math.abs(speed*Math.sin(angle));
+          this.hit.currentTime=0; this.hit.play();
+        }
+
+        if(b.y-b.r>CANVAS_H) b.out=true;
+
+        for(const br of this.bricks){
+          if(!br.alive) continue;
+          const withinX=b.x+b.r>br.x && b.x-b.r<br.x+br.w;
+          const withinY=b.y+b.r>br.y && b.y-b.r<br.y+br.h;
+          if(withinX && withinY){
+            const oL=b.x+b.r-br.x;
+            const oR=br.x+br.w-(b.x-b.r);
+            const oT=b.y+b.r-br.y;
+            const oB=br.y+br.h-(b.y-b.r);
+            if(Math.min(oL,oR) < Math.min(oT,oB)) b.vx*=-1; else b.vy*=-1;
+
+            br.hp -= 1;
+            this.hit.currentTime=0; this.hit.play();
+
+            if(br.hp<=0){
+              br.alive=false;
+              this.score += (br.emoji==="⭐") ? 18 : 10;
+              this.brk.currentTime=0; this.brk.play();
+
+              this.bricksKilled++;
+              this.maybeDropMultiball(br.x+br.w/2, br.y+br.h/2);
+            }
+            break;
+          }
+        }
+      }
+
+      this.bricks = this.bricks.filter(x=>x.alive);
+      if(this.bricks.length===0){ this.finish(); return; }
+
+      const aliveBalls=this.balls.filter(b=>!b.out);
+      if(aliveBalls.length===0){
+        this.lives--;
+        if(this.lives<=0){ this.finish(); return; }
+        this.balls=[this.makeBall()];
+      }else this.balls=aliveBalls;
+
+      for(let i=this.falling.length-1;i>=0;i--){
+        const pu=this.falling[i];
+        pu.y += pu.vy;
+        if(pu.y-pu.r>CANVAS_H){ this.falling.splice(i,1); continue; }
+
+        const p=this.paddle;
+        const withinX=pu.x>=p.x-p.w/2 && pu.x<=p.x+p.w/2;
+        const withinY=pu.y+pu.r>=p.y && pu.y-pu.r<=p.y+p.h;
+        if(withinX && withinY){
+          this.falling.splice(i,1);
+          if(pu.type==="multiball"){
+            for(let k=0;k<2;k++){
+              const nb=this.makeBall();
+              nb.x=p.x+(k?18:-18);
+              nb.y=p.y-24;
+              nb.vx *= (k?1.15:-1.15);
+              this.balls.push(nb);
+            }
+            this.score += 5;
+            this.brk.currentTime=0; this.brk.play();
+          }
+        }
+      }
+    }
+
+    render(){
+      const ctx=this.ctx;
+      ctx.clearRect(0,0,CANVAS_W,CANVAS_H);
+
+      // Level 3 background
+      if (!drawCover(ctx, BG.l3, CANVAS_W, CANVAS_H)){
+        ctx.fillStyle="rgba(0,0,0,0.22)";
+        ctx.fillRect(0,0,CANVAS_W,CANVAS_H);
+      }
+      ctx.save(); ctx.globalAlpha=0.18; ctx.fillStyle="#000"; ctx.fillRect(0,0,CANVAS_W,CANVAS_H); ctx.restore();
+
+      ctx.strokeStyle="rgba(166,139,91,0.9)";
+      ctx.lineWidth=2;
+      ctx.textAlign="center"; ctx.textBaseline="middle";
+      ctx.font=`18px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
+
+      for(const br of this.bricks){
+        ctx.fillStyle = (br.emoji==="⭐") ? "rgba(255,234,167,0.9)" : "rgba(255,248,220,0.9)";
+        ctx.fillRect(br.x, br.y, br.w, br.h);
+        ctx.strokeRect(br.x, br.y, br.w, br.h);
+        ctx.fillStyle="#111";
+        ctx.fillText(br.emoji, br.x+br.w/2, br.y+br.h/2);
+      }
+
+      ctx.font=`26px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
+      for(const pu of this.falling) ctx.fillText(pu.emoji, pu.x, pu.y);
+
+      for(const b of this.balls){
+        ctx.beginPath();
+        ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
+        ctx.fillStyle="#fff";
+        ctx.fill();
+      }
+
+      ctx.font=`60px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
+      ctx.fillText("🐰", this.paddle.x, this.paddle.y+this.PADDLE_H/2);
+
+      ctx.fillStyle="#7effff"; ctx.font="16px Arial";
+      ctx.textAlign="left";
+      ctx.fillText(`Punkte: ${this.score}`,10,20);
+      ctx.fillText(`🍀 Drops: ${this.powerUpsDropped}`,10,42);
+      ctx.textAlign="right";
+      ctx.fillText(`Leben: ${this.lives}`,CANVAS_W-10,20);
+    }
+
+    finish(){
+      if(this.done) return;
+      this.done=true;
+
+      this.canvas.removeEventListener('mousedown', this._md);
+      this.canvas.removeEventListener('mousemove', this._mm);
+      this.canvas.removeEventListener('mouseup', this._mu);
+      this.canvas.removeEventListener('mouseleave', this._mu);
+      this.canvas.removeEventListener('touchstart', this._ts);
+      this.canvas.removeEventListener('touchmove', this._tm);
+
+      this.onDone(this.score);
+    }
+  }
+
+  const wrapper = document.getElementById('easter-saga-wrapper');
+  new EasterSaga(wrapper);
+})();
+</script>
