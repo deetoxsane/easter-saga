@@ -1,14 +1,15 @@
 <!-- ==============================================================
-     EASTER SAGA – TV FRAME VERSION (Full)
-     - TV-Hintergrundbild im Wrapper (zoombar)
-     - Canvas exakt auf TV-Screen gemappt
-     - Pro Level eigener Canvas-Hintergrund (Bild-URL Platzhalter)
-     - Videos im Start & Finale (Autoplay muted playsinline)
-     - Gewinnspiel-CTA: Score einsenden an medbonet@medbo.de (sehr prominent)
+     EASTER SAGA – CINEMATIC TV ZOOM → FULLSCREEN PLAY (Final Patched)
+     Fixes:
+     1) Level 2: KEINE “durchsichtigen” Spielelemente mehr (keine Alpha-Washes, Ground solid)
+     2) Zoom “toller”: Cinematic vignette layer during zoom + smoother timing
+     3) Nach Ende von Level 3 automatisch rauszoomen (vor Finale)
+     4) HUD immer lesbar: UI-Bar oben + Outline-Text (alle Level)
 ============================================================== -->
 <div id="easter-saga-wrapper"></div>
 
 <style>
+  /* ---------------- Wrapper / Room background ---------------- */
   #easter-saga-wrapper{
     position:relative;
     width:min(1200px, 96vw);
@@ -17,17 +18,21 @@
     border-radius: 14px;
     overflow:hidden;
 
-    /* Placeholder: Wrapper Background (Room/TV photo) */
     background-image: url("https://www.medbo.de/fileadmin/user_upload/Gemini_Generated_Image_2xf18y2xf18y2xf1.png");
-    /* Zoom rein, damit TV groesser wirkt (anpassen nach Geschmack) */
-    background-size: 140% auto;
-    background-position: 50% 42%;
     background-repeat:no-repeat;
+    background-position: 50% 50%;
+    background-size: cover;
 
     box-shadow: 0 0 25px rgba(60,242,255,0.22), 0 0 90px rgba(0,0,0,0.65);
     border: 2px solid rgba(60,242,255,0.35);
+
+    transition:
+      background-size 1500ms cubic-bezier(.2,.95,.15,1),
+      background-position 1500ms cubic-bezier(.2,.95,.15,1),
+      filter 1100ms ease;
   }
 
+  /* Scanlines */
   #easter-saga-wrapper::before{
     content:"";
     position:absolute; inset:0;
@@ -37,17 +42,41 @@
       repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0 2px, transparent 2px 6px);
     mix-blend-mode: overlay;
     opacity: 0.55;
+    z-index: 5;
   }
 
+  /* Cinematic zoom layer (adds vignette during zoom) */
+  #easter-saga-wrapper::after{
+    content:"";
+    position:absolute; inset:0;
+    pointer-events:none;
+    z-index: 6;
+    opacity: 0;
+    transition: opacity 950ms ease;
+    background:
+      radial-gradient(circle at 50% 50%, rgba(0,0,0,0.0) 0 52%, rgba(0,0,0,0.55) 78%, rgba(0,0,0,0.75) 100%),
+      linear-gradient(180deg, rgba(0,0,0,0.10), rgba(0,0,0,0.18));
+  }
+
+  /* Zoom state */
+  #easter-saga-wrapper.zoom-tv{
+    background-size: 240% auto;
+    background-position: 50% 41%;
+    filter: saturate(1.08) contrast(1.08);
+  }
+  #easter-saga-wrapper.zoom-tv::after{
+    opacity: 1;
+  }
+
+  /* ---------------- Canvas ---------------- */
   #easter-saga-wrapper canvas{
     position:absolute;
-    border-radius: 10px;
+    left:0; top:0;
+    width:100%; height:100%;
+    border-radius: 14px;
     background: transparent;
-    box-shadow: 0 0 18px rgba(0,229,255,0.25);
-    filter: contrast(1.05) saturate(1.08);
-    transform: perspective(900px) rotateX(1.2deg);
-    transform-origin: center;
     touch-action:none;
+    z-index: 10;
 
     cursor:url('https://cdn.jsdelivr.net/gh/akzhy/cursor-tools@master/cursors/svg/hand-open.svg'), grab;
   }
@@ -55,18 +84,7 @@
     cursor:url('https://cdn.jsdelivr.net/gh/akzhy/cursor-tools@master/cursors/svg/hand-closed.svg'), grabbing;
   }
 
-  #easter-saga-wrapper .tv-glass{
-    position:absolute;
-    border-radius: 12px;
-    pointer-events:none;
-    background:
-      radial-gradient(circle at 50% 20%, rgba(255,255,255,0.10), transparent 45%),
-      linear-gradient(180deg, rgba(255,255,255,0.03), rgba(0,0,0,0.18));
-    mix-blend-mode: screen;
-    opacity: 0.85;
-  }
-
-  /* Overlay */
+  /* ---------------- Overlay UI ---------------- */
   .saga-overlay{
     position:absolute; inset:0;
     display:flex; flex-direction:column;
@@ -90,7 +108,7 @@
   .saga-overlay p{
     margin:0.5em 0;
     line-height:1.5;
-    max-width:720px;
+    max-width:760px;
     color:#cfeaff;
   }
   .saga-overlay button{
@@ -102,13 +120,13 @@
   .saga-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:10px}
   .saga-input{
     padding:0.6em 0.7em;border-radius:10px;border:1px solid #7effff;
-    background:#0f1a22;color:#e9f8ff; min-width: 240px;
+    background:#0f1a22;color:#e9f8ff; min-width: 260px;
   }
 
   .saga-table{border-collapse:collapse;color:#e9f8ff;min-width:320px}
   .saga-table th,.saga-table td{border:1px solid #7effff66;padding:6px 8px}
 
-  /* Prominenter Gewinnspiel CTA */
+  /* Prominent Gewinnspiel CTA */
   #saga-submit{
     background: linear-gradient(90deg, #ffcc00, #ff4fd8);
     color: #061018;
@@ -123,10 +141,11 @@
       0 0 30px rgba(255,204,0,0.22);
     transform: translateY(0);
     transition: transform 0.12s ease, filter 0.12s ease;
-    min-width: 260px;
+    min-width: 290px;
   }
   #saga-submit:hover{ filter: brightness(1.05); transform: translateY(-1px); }
   #saga-submit:active{ transform: translateY(1px) scale(0.99); }
+
   #saga-submit-hint{
     margin-top: 10px;
     font-size: 0.98rem;
@@ -143,13 +162,10 @@
     color: #cfeaff;
     line-height: 1.45;
   }
-  #saga-after-submit{
-    display:none;
-    margin-top: 14px;
-  }
+  #saga-after-submit{ display:none; margin-top: 14px; }
 
   .saga-video{
-    width:min(760px, 92%);
+    width:min(820px, 92%);
     border-radius:12px;
     margin:14px 0;
     box-shadow:0 0 24px rgba(0,0,0,0.55);
@@ -162,6 +178,15 @@
 (() => {
   const CANVAS_W = 960;
   const CANVAS_H = 540;
+
+  const URLS = {
+    introVideo: "INTRO_VIDEO_URL",
+    finalVideo: "FINAL_VIDEO_URL",
+    levelBG1: "https://www.medbo.de/fileadmin/user_upload/Gemini_Generated_Image_orycunorycunoryc.png",
+    levelBG2: "https://www.medbo.de/fileadmin/user_upload/Gemini_Generated_Image_b2yk9sb2yk9sb2yk.png",
+    levelBG3: "https://www.medbo.de/fileadmin/user_upload/gemini-level3.png",
+  };
+
   const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
   const $ = sel => document.querySelector(sel);
   const createEl = (tag, cls, html) => {
@@ -171,15 +196,6 @@
     return el;
   };
   const encode = s => encodeURIComponent(String(s));
-
-  /* -------------------- Placeholder URLs -------------------- */
-  const URLS = {
-    introVideo: "INTRO_VIDEO_URL",
-    finalVideo: "FINAL_VIDEO_URL",
-    levelBG1: "https://www.medbo.de/fileadmin/user_upload/Gemini_Generated_Image_vijk4fvijk4fvijk.png",
-    levelBG2: "LEVEL2_BG_URL",
-    levelBG3: "LEVEL3_BG_URL",
-  };
 
   function loadImage(src){
     const img = new Image();
@@ -193,35 +209,6 @@
     l3: loadImage(URLS.levelBG3),
   };
 
-  /* -------------------- TV Mapping (0..1 relativ) -------------------- */
-  const TV = {
-    left: 0.305,
-    top:  0.235,
-    width: 0.40,
-    height:0.48
-  };
-
-  function applyTVLayout(wrapper, canvas, glass){
-    const W = wrapper.clientWidth, H = wrapper.clientHeight;
-    const l = Math.round(W * TV.left);
-    const t = Math.round(H * TV.top);
-    const w = Math.round(W * TV.width);
-    const h = Math.round(H * TV.height);
-
-    canvas.style.left = l + "px";
-    canvas.style.top  = t + "px";
-    canvas.style.width  = w + "px";
-    canvas.style.height = h + "px";
-
-    if (glass){
-      glass.style.left = (l-2) + "px";
-      glass.style.top  = (t-2) + "px";
-      glass.style.width  = (w+4) + "px";
-      glass.style.height = (h+4) + "px";
-    }
-  }
-
-  /* Draw cover-fit background image into canvas */
   function drawCover(ctx, img, w, h){
     if (!img || !img.complete || !img.naturalWidth) return false;
     const iw = img.naturalWidth, ih = img.naturalHeight;
@@ -233,36 +220,50 @@
     return true;
   }
 
-  /* -------------------- Saga Controller -------------------------- */
+  function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
+
+  /* ---------- UI helpers ---------- */
+  function drawTopBar(ctx){
+    ctx.save();
+    ctx.fillStyle = "rgba(0,0,0,0.52)";
+    ctx.fillRect(0, 0, CANVAS_W, 58);
+    ctx.restore();
+  }
+  function outlinedText(ctx, text, x, y, align="left"){
+    ctx.save();
+    ctx.font = "16px Arial";
+    ctx.textAlign = align;
+    ctx.textBaseline = "top";
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = "rgba(0,0,0,0.85)";
+    ctx.strokeText(text, x, y);
+    ctx.fillStyle = "#7effff";
+    ctx.fillText(text, x, y);
+    ctx.restore();
+  }
+
   class EasterSaga {
     constructor(wrapper){
       this.wrapper = wrapper;
-      this.canvas = null; this.glass=null; this.ctx = null;
+      this.canvas = null;
+      this.ctx = null;
+
       this.levelIndex = 0;
       this.totalScore = 0;
       this.levelScores = [0,0,0];
 
       this.levels = [
-        {
-          id: "eggcatch",
-          title: "Level 1 – Easter Catch",
-          description:
-            "Fange Eier 🥚 in 25 Sekunden.<br>Korb 🧺 per Drag frei bewegen (auch nach oben).<br>Stinker 🦨 geben -3.",
-          factory: (onDone)=> new LevelEggCatch(this, onDone)
+        { id:"eggcatch", title:"Level 1 – Easter Catch",
+          description:"Fange Eier 🥚 in 25 Sekunden.<br>Korb 🧺 per Drag frei bewegen (auch nach oben).<br>Stinker 🦨 geben -3.",
+          factory:(onDone)=> new LevelEggCatch(this,onDone)
         },
-        {
-          id: "runner",
-          title: "Level 2 – Easter Runner",
-          description:
-            "Springen (Klick/Tippen/Space).<br>2 Leben, Treffer kostet 1 Leben.<br>Stinker 🦨 geben -4. Starttempo sanfter.",
-          factory: (onDone)=> new LevelRunner(this, onDone)
+        { id:"runner", title:"Level 2 – Easter Runner",
+          description:"Springen (Klick/Tippen/Space).<br>2 Leben, Treffer kostet 1 Leben.<br>Stinker 🦨 geben -4.",
+          factory:(onDone)=> new LevelRunner(this,onDone)
         },
-        {
-          id: "brick",
-          title: "Level 3 – Brick Breaker+",
-          description:
-            "2 Leben. 🍀 Multi‑Ball kommt garantiert. ⭐ braucht 2 Hits.<br>🍀 sammeln -> 2 Extra‑Bälle!",
-          factory: (onDone)=> new LevelBrick(this, onDone)
+        { id:"brick", title:"Level 3 – Brick Breaker+",
+          description:"2 Leben. 🍀 Multi‑Ball kommt garantiert. ⭐ braucht 2 Hits.<br>🍀 sammeln → 2 Extra‑Bälle!",
+          factory:(onDone)=> new LevelBrick(this,onDone)
         }
       ];
 
@@ -271,45 +272,30 @@
 
     ensureCanvas(){
       if (this.canvas) return;
-      const canvas = document.createElement('canvas');
+      const canvas = document.createElement("canvas");
       canvas.width = CANVAS_W;
       canvas.height = CANVAS_H;
       this.wrapper.appendChild(canvas);
-
-      const glass = createEl('div','tv-glass');
-      this.wrapper.appendChild(glass);
-
       this.canvas = canvas;
-      this.glass = glass;
-      this.ctx = canvas.getContext('2d');
-
-      const relayout = ()=>applyTVLayout(this.wrapper, this.canvas, this.glass);
-      this._relayout = relayout;
-      relayout();
-      window.addEventListener('resize', relayout);
+      this.ctx = canvas.getContext("2d");
     }
 
-    clearCanvas(){ if (this.ctx) this.ctx.clearRect(0,0,CANVAS_W,CANVAS_H); }
+    clearCanvas(){ if(this.ctx) this.ctx.clearRect(0,0,CANVAS_W,CANVAS_H); }
 
     destroyCanvas(){
       if (this.canvas && this.canvas.parentNode) this.canvas.parentNode.removeChild(this.canvas);
-      if (this.glass && this.glass.parentNode) this.glass.parentNode.removeChild(this.glass);
-      if (this._relayout) window.removeEventListener('resize', this._relayout);
-      this.canvas=null; this.glass=null; this.ctx=null;
+      this.canvas = null; this.ctx = null;
     }
 
     showOverlay(title, html, buttonText, onClick){
       this.hideOverlay();
-      const ov = createEl('div', 'saga-overlay');
-      ov.innerHTML = `
-        <h1>${title}</h1>
-        <p>${html}</p>
-        <button>${buttonText}</button>
-      `;
+      const ov = createEl("div","saga-overlay");
+      ov.innerHTML = `<h1>${title}</h1><p>${html}</p><button>${buttonText}</button>`;
       this.wrapper.appendChild(ov);
-      ov.querySelector('button').onclick = onClick;
+      ov.querySelector("button").onclick = onClick;
       this.overlay = ov;
     }
+
     hideOverlay(){
       if (this.overlay && this.overlay.parentNode) this.overlay.parentNode.removeChild(this.overlay);
       this.overlay = null;
@@ -317,34 +303,34 @@
 
     showStartScreen(){
       this.hideOverlay();
-      const ov = createEl('div','saga-overlay');
+      this.wrapper.classList.remove("zoom-tv");
+
+      const ov = createEl("div","saga-overlay");
       ov.innerHTML = `
         <h1>EASTER SAGA</h1>
         <p>
-          Willkommen! Das Spiel läuft “im TV”.<br>
-          <b>Gewinnspiel:</b> Am Ende bitte unbedingt deinen Score einsenden.
+          Start im Zimmer — dann zoomen wir in den TV rein.<br>
+          Danach spielst du die Level groß im Fullscreen.
+          <br><br><b>Gewinnspiel:</b> Am Ende bitte unbedingt deinen Score einsenden.
         </p>
-
         <video class="saga-video" autoplay muted playsinline loop>
           <source src="${URLS.introVideo}" type="video/mp4">
         </video>
-
         <button id="saga-start">Spiel starten</button>
-        <p style="opacity:0.85; font-size:0.95rem; margin-top:10px;">
-          (Falls das Video nicht autoplayt: Browser blockt Audio/Autoplay — ist <b>muted</b>, sollte i.d.R. laufen.)
-        </p>
       `;
       this.wrapper.appendChild(ov);
       this.overlay = ov;
 
-      $("#saga-start").onclick = ()=>{
+      $("#saga-start").onclick = async ()=>{
+        this.wrapper.classList.add("zoom-tv");
+        await sleep(950);
         this.levelIndex=0; this.totalScore=0; this.levelScores=[0,0,0];
         this.showLevelIntro();
       };
     }
 
     showLevelIntro(){
-      const L=this.levels[this.levelIndex];
+      const L = this.levels[this.levelIndex];
       this.showOverlay(L.title, L.description, "Level starten", ()=>this.startLevel());
     }
 
@@ -353,30 +339,36 @@
       this.ensureCanvas();
       this.clearCanvas();
 
-      const L=this.levels[this.levelIndex];
+      const L = this.levels[this.levelIndex];
       this.currentLevel = L.factory((score)=>{
-        this.levelScores[this.levelIndex]=score;
+        this.levelScores[this.levelIndex] = score;
         this.totalScore += score;
         this.endLevelScreen(score);
       });
     }
 
     endLevelScreen(score){
-      const idx=this.levelIndex;
-      const last = idx>=this.levels.length-1;
+      const idx = this.levelIndex;
+      const last = idx >= this.levels.length-1;
+
+      if (last){
+        // Auto zoom-out AFTER level 3 ends (before final screen)
+        this.wrapper.classList.remove("zoom-tv");
+      }
+
       this.showOverlay(
         `Level ${idx+1} abgeschlossen`,
         `Level‑Score: <b>${score}</b><br>Gesamtscore bisher: <b>${this.totalScore}</b>`,
         last ? "Zum Finale" : `Weiter zu Level ${idx+2}`,
-        ()=>{ if(last) this.showFinalScreen(); else { this.levelIndex++; this.showLevelIntro(); } }
+        ()=>{ last ? this.showFinalScreen() : (this.levelIndex++, this.showLevelIntro()); }
       );
     }
 
     showFinalScreen(){
       this.hideOverlay();
 
-      const ov=createEl('div','saga-overlay');
-      ov.innerHTML=`
+      const ov = createEl("div","saga-overlay");
+      ov.innerHTML = `
         <h1>Finale – Gewinnspiel</h1>
         <p>
           Gesamtpunkte: <b>${this.totalScore}</b><br>
@@ -396,7 +388,7 @@
         </div>
 
         <div id="saga-submit-hint">
-          Empfänger: <b>medbonet@medbo.de</b> — es öffnet sich deine Mail‑App mit ausgefüllter Nachricht.
+          Empfänger: <b>medbonet@medbo.de</b>
         </div>
 
         <div id="saga-lock">
@@ -406,6 +398,9 @@
 
         <div class="saga-row" style="margin-top:10px">
           <button id="saga-sent">Ich habe gesendet ✅</button>
+          <button id="saga-zoomin" style="background:#15212a;color:#cfeaff;box-shadow:none;border:1px solid rgba(126,255,255,0.25);">
+            Wieder in den TV zoomen
+          </button>
         </div>
 
         <div id="saga-after-submit">
@@ -423,7 +418,7 @@
         </div>
       `;
       this.wrapper.appendChild(ov);
-      this.overlay=ov;
+      this.overlay = ov;
 
       const recipient = "medbonet@medbo.de";
 
@@ -458,46 +453,51 @@
           return;
         }
         window.location.href = buildMail();
-        // Nutzer kann danach bestätigen (weil wir nicht prüfen können, ob Mail wirklich gesendet wurde)
       };
 
       $("#saga-sent").onclick = () => unlockAfterSubmit();
-
       $("#saga-save").onclick = ()=>{
         const name = ($("#saga-name").value || "Anonymous").trim();
         this.saveHighScore(name, this.totalScore);
         this.renderHighScore();
         $("#saga-save").disabled = true;
       };
-
-      $("#saga-restart").onclick=()=>{
+      $("#saga-restart").onclick = ()=>{
         this.destroyCanvas();
         this.showStartScreen();
       };
+      $("#saga-zoomin").onclick = ()=>{
+        this.wrapper.classList.add("zoom-tv");
+      };
     }
 
-    loadHighScores(){ const raw=localStorage.getItem('easterSagaHS'); return raw?JSON.parse(raw):[]; }
+    loadHighScores(){
+      const raw = localStorage.getItem("easterSagaHS");
+      return raw ? JSON.parse(raw) : [];
+    }
     saveHighScore(name, score){
-      const list=this.loadHighScores();
+      const list = this.loadHighScores();
       list.push({name, score, date: Date.now()});
       list.sort((a,b)=>b.score-a.score);
-      localStorage.setItem('easterSagaHS', JSON.stringify(list.slice(0,10)));
+      localStorage.setItem("easterSagaHS", JSON.stringify(list.slice(0,10)));
     }
     renderHighScore(){
       if (!this.overlay) return;
-      const tb=this.overlay.querySelector('tbody');
+      const tb = this.overlay.querySelector("tbody");
       if (!tb) return;
-      tb.innerHTML="";
+      tb.innerHTML = "";
       this.loadHighScores().forEach((e,i)=>{
-        const d=new Date(e.date);
-        const tr=document.createElement('tr');
-        tr.innerHTML=`<td>${i+1}</td><td>${e.name}</td><td>${e.score}</td><td>${d.toLocaleDateString()}</td>`;
+        const d = new Date(e.date);
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${i+1}</td><td>${e.name}</td><td>${e.score}</td><td>${d.toLocaleDateString()}</td>`;
         tb.appendChild(tr);
       });
     }
   }
 
-  /* -------------------- LEVEL 1 -------------------- */
+  /* =================================================================
+     LEVEL 1 – EGG CATCH
+  ================================================================== */
   class LevelEggCatch{
     constructor(saga,onDone){
       this.saga=saga; this.onDone=onDone;
@@ -525,7 +525,7 @@
           this.drag.active=true;
           this.drag.offsetX=p.x-this.basket.x;
           this.drag.offsetY=p.y-this.basket.y;
-          this.canvas.classList.add('grabbing');
+          this.canvas.classList.add("grabbing");
           this.canvas.setPointerCapture(e.pointerId);
         }
       };
@@ -539,22 +539,22 @@
       this._pu=(e)=>{
         if(!this.drag.active) return;
         this.drag.active=false;
-        this.canvas.classList.remove('grabbing');
+        this.canvas.classList.remove("grabbing");
         try{ this.canvas.releasePointerCapture(e.pointerId); }catch(_){}
       };
 
-      this.canvas.addEventListener('pointerdown', this._pd, {passive:false});
-      this.canvas.addEventListener('pointermove', this._pm, {passive:false});
-      this.canvas.addEventListener('pointerup', this._pu, {passive:false});
-      this.canvas.addEventListener('pointercancel', this._pu, {passive:false});
-      this.canvas.addEventListener('pointerleave', this._pu, {passive:false});
+      this.canvas.addEventListener("pointerdown", this._pd, {passive:false});
+      this.canvas.addEventListener("pointermove", this._pm, {passive:false});
+      this.canvas.addEventListener("pointerup", this._pu, {passive:false});
+      this.canvas.addEventListener("pointercancel", this._pu, {passive:false});
+      this.canvas.addEventListener("pointerleave", this._pu, {passive:false});
 
       this._timerId=setInterval(()=>{ this.timeLeft--; if(this.timeLeft<=0) this.finish(); },1000);
       requestAnimationFrame(()=>this.loop());
     }
 
     spawnItem(){
-      const bad=Math.random()<0.18;
+      const bad = Math.random()<0.18;
       this.items.push({x:Math.random()*(CANVAS_W-20)+10,y:-10,vy:(bad?2.6:2.2)+Math.random()*1.6,r:14,bad});
     }
 
@@ -588,13 +588,12 @@
       const ctx=this.ctx;
       ctx.clearRect(0,0,CANVAS_W,CANVAS_H);
 
-      // Level 1 background (placeholder image)
       if (!drawCover(ctx, BG.l1, CANVAS_W, CANVAS_H)){
-        ctx.fillStyle="rgba(0,0,0,0.22)";
+        ctx.fillStyle="#10131a";
         ctx.fillRect(0,0,CANVAS_W,CANVAS_H);
       }
-      // subtle dark overlay for readability
-      ctx.save(); ctx.globalAlpha=0.18; ctx.fillStyle="#000"; ctx.fillRect(0,0,CANVAS_W,CANVAS_H); ctx.restore();
+
+      ctx.save(); ctx.globalAlpha=0.08; ctx.fillStyle="#000"; ctx.fillRect(0,0,CANVAS_W,CANVAS_H); ctx.restore();
 
       ctx.font=`28px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
       ctx.textAlign="center"; ctx.textBaseline="middle";
@@ -603,25 +602,29 @@
       ctx.font=`38px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
       ctx.fillText("🧺", this.basket.x, this.basket.y);
 
-      ctx.fillStyle="#7effff"; ctx.font="16px Arial";
-      ctx.textAlign="left"; ctx.fillText(`Punkte: ${this.score}`,10,20);
-      ctx.textAlign="right"; ctx.fillText(`Zeit: ${this.timeLeft}s`,CANVAS_W-10,20);
+      drawTopBar(ctx);
+      outlinedText(ctx, `Punkte: ${this.score}`, 10, 10, "left");
+      outlinedText(ctx, `Zeit: ${this.timeLeft}s`, CANVAS_W-10, 10, "right");
     }
 
     finish(){
       if(this.done) return;
       this.done=true;
       clearInterval(this._timerId);
-      this.canvas.removeEventListener('pointerdown', this._pd);
-      this.canvas.removeEventListener('pointermove', this._pm);
-      this.canvas.removeEventListener('pointerup', this._pu);
-      this.canvas.removeEventListener('pointercancel', this._pu);
-      this.canvas.removeEventListener('pointerleave', this._pu);
+
+      this.canvas.removeEventListener("pointerdown", this._pd);
+      this.canvas.removeEventListener("pointermove", this._pm);
+      this.canvas.removeEventListener("pointerup", this._pu);
+      this.canvas.removeEventListener("pointercancel", this._pu);
+      this.canvas.removeEventListener("pointerleave", this._pu);
+
       this.onDone(this.score);
     }
   }
 
-  /* -------------------- LEVEL 2 -------------------- */
+  /* =================================================================
+     LEVEL 2 – RUNNER (FULL OPAQUE like Level 1 & 3)
+  ================================================================== */
   class LevelRunner{
     constructor(saga,onDone){
       this.saga=saga; this.onDone=onDone;
@@ -651,10 +654,10 @@
       };
       this._md=()=>this._jump();
       this._ts=(e)=>{ this._jump(); e.preventDefault(); };
-      this.canvas.addEventListener('mousedown', this._md);
-      this.canvas.addEventListener('touchstart', this._ts, {passive:false});
+      this.canvas.addEventListener("mousedown", this._md);
+      this.canvas.addEventListener("touchstart", this._ts, {passive:false});
       this._kd=(e)=>{ if(e.code==="Space") this._jump(); };
-      window.addEventListener('keydown', this._kd);
+      window.addEventListener("keydown", this._kd);
 
       this._timerId=setInterval(()=>{ this.timeLeft--; if(this.timeLeft<=0) this.finish(); },1000);
       requestAnimationFrame(()=>this.loop());
@@ -738,48 +741,79 @@
       const ctx=this.ctx;
       ctx.clearRect(0,0,CANVAS_W,CANVAS_H);
 
-      // Level 2 background
       if (!drawCover(ctx, BG.l2, CANVAS_W, CANVAS_H)){
-        ctx.fillStyle="rgba(0,0,0,0.22)";
+        ctx.fillStyle="#0f1420";
         ctx.fillRect(0,0,CANVAS_W,CANVAS_H);
       }
-      ctx.save(); ctx.globalAlpha=0.18; ctx.fillStyle="#000"; ctx.fillRect(0,0,CANVAS_W,CANVAS_H); ctx.restore();
 
-      ctx.fillStyle="rgba(42,52,70,0.55)";
-      ctx.fillRect(0,this.GROUND_Y, CANVAS_W, CANVAS_H-this.GROUND_Y);
+      // NO global dark overlay in Level 2 -> crisp like Level 1 & 3
 
+      // Solid ground (no transparency)
+      ctx.save();
+      ctx.fillStyle = "rgb(12,16,22)";
+      ctx.fillRect(0, this.GROUND_Y, CANVAS_W, CANVAS_H - this.GROUND_Y);
+      ctx.strokeStyle = "rgba(126,255,255,0.22)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, this.GROUND_Y + 1);
+      ctx.lineTo(CANVAS_W, this.GROUND_Y + 1);
+      ctx.stroke();
+      ctx.restore();
+
+      // Obstacles + pickups fully opaque
+      ctx.save();
+      ctx.globalAlpha = 1;
       ctx.textAlign="center"; ctx.textBaseline="middle";
+
       ctx.font=`38px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
       this.obstacles.forEach(o=>ctx.fillText(o.emoji,o.x,o.y));
+
       ctx.font=`28px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
       this.eggs.forEach(e=>ctx.fillText("🥚",e.x,e.y));
       this.bads.forEach(e=>ctx.fillText("🦨",e.x,e.y));
+      ctx.restore();
 
+      // Player fully opaque (invuln indicated by outline/glow, not transparency)
       ctx.save();
-      if(this.invulnMs>0 && Math.floor(performance.now()/90)%2===0) ctx.globalAlpha=0.35;
-      ctx.shadowColor="#7effff"; ctx.shadowBlur=12;
+      ctx.globalAlpha = 1;
+      ctx.textAlign="center"; ctx.textBaseline="middle";
       ctx.font=`36px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
+
+      if(this.invulnMs>0 && Math.floor(performance.now()/90)%2===0){
+        ctx.lineWidth = 6;
+        ctx.strokeStyle = "rgba(126,255,255,0.95)";
+        ctx.strokeText("🐰", this.player.x, this.player.y);
+        ctx.shadowColor = "rgba(126,255,255,0.9)";
+        ctx.shadowBlur = 14;
+      } else {
+        ctx.shadowColor="#7effff";
+        ctx.shadowBlur=10;
+      }
+
+      ctx.fillStyle="#fff";
       ctx.fillText("🐰",this.player.x,this.player.y);
       ctx.restore();
 
-      ctx.fillStyle="#7effff"; ctx.font="16px Arial";
-      ctx.textAlign="left"; ctx.fillText(`Punkte: ${this.score}`,10,20);
-      ctx.fillText(`Leben: ${this.lives}`,10,42);
-      ctx.textAlign="right"; ctx.fillText(`Zeit: ${this.timeLeft}s`,CANVAS_W-10,20);
+      drawTopBar(ctx);
+      outlinedText(ctx, `Punkte: ${this.score}`, 10, 10, "left");
+      outlinedText(ctx, `Leben: ${this.lives}`, 10, 32, "left");
+      outlinedText(ctx, `Zeit: ${this.timeLeft}s`, CANVAS_W-10, 10, "right");
     }
 
     finish(){
       if(this.done) return;
       this.done=true;
       clearInterval(this._timerId);
-      this.canvas.removeEventListener('mousedown', this._md);
-      this.canvas.removeEventListener('touchstart', this._ts);
-      window.removeEventListener('keydown', this._kd);
+      this.canvas.removeEventListener("mousedown", this._md);
+      this.canvas.removeEventListener("touchstart", this._ts);
+      window.removeEventListener("keydown", this._kd);
       this.onDone(this.score);
     }
   }
 
-  /* -------------------- LEVEL 3 (Guaranteed 🍀) -------------------- */
+  /* =================================================================
+     LEVEL 3 – BRICK (Guaranteed 🍀)
+  ================================================================== */
   class LevelBrick{
     constructor(saga,onDone){
       this.saga=saga; this.onDone=onDone;
@@ -810,18 +844,18 @@
         const cx=(pageX-rect.left)*scaleX;
         this.paddle.x=clamp(cx,this.PADDLE_W/2, CANVAS_W-this.PADDLE_W/2);
       };
-      this._md=e=>{ moveToX(e.clientX); this.canvas.classList.add('grabbing'); };
+      this._md=e=>{ moveToX(e.clientX); this.canvas.classList.add("grabbing"); };
       this._mm=e=>{ if(e.buttons) moveToX(e.clientX); };
-      this._mu=()=>{ this.canvas.classList.remove('grabbing'); };
+      this._mu=()=>{ this.canvas.classList.remove("grabbing"); };
       this._ts=e=>{ moveToX(e.touches[0].clientX); e.preventDefault(); };
       this._tm=e=>{ moveToX(e.touches[0].clientX); e.preventDefault(); };
 
-      this.canvas.addEventListener('mousedown', this._md);
-      this.canvas.addEventListener('mousemove', this._mm);
-      this.canvas.addEventListener('mouseup', this._mu);
-      this.canvas.addEventListener('mouseleave', this._mu);
-      this.canvas.addEventListener('touchstart', this._ts, {passive:false});
-      this.canvas.addEventListener('touchmove', this._tm, {passive:false});
+      this.canvas.addEventListener("mousedown", this._md);
+      this.canvas.addEventListener("mousemove", this._mm);
+      this.canvas.addEventListener("mouseup", this._mu);
+      this.canvas.addEventListener("mouseleave", this._mu);
+      this.canvas.addEventListener("touchstart", this._ts, {passive:false});
+      this.canvas.addEventListener("touchmove", this._tm, {passive:false});
 
       requestAnimationFrame(()=>this.loop());
     }
@@ -847,14 +881,12 @@
     }
 
     maybeDropMultiball(x,y){
-      const FIRST_GUARANTEE_AT = 4; // garantiert spaetestens beim 4. Kill
-      const EVERY_KILLS = 7;        // danach spaetestens alle 7 Kills
-
+      const FIRST_GUARANTEE_AT = 4;
+      const EVERY_KILLS = 7;
       const kill = this.bricksKilled;
       const guaranteeFirst = (this.powerUpsDropped === 0 && kill >= FIRST_GUARANTEE_AT);
       const guaranteePeriodic = (kill % EVERY_KILLS === 0);
       const randomEarly = Math.random() < 0.18;
-
       if (guaranteeFirst || guaranteePeriodic || randomEarly){
         this.falling.push({x,y,vy:2.25,r:14,type:"multiball",emoji:"🍀"});
         this.powerUpsDropped++;
@@ -905,7 +937,6 @@
               br.alive=false;
               this.score += (br.emoji==="⭐") ? 18 : 10;
               this.brk.currentTime=0; this.brk.play();
-
               this.bricksKilled++;
               this.maybeDropMultiball(br.x+br.w/2, br.y+br.h/2);
             }
@@ -953,12 +984,12 @@
       const ctx=this.ctx;
       ctx.clearRect(0,0,CANVAS_W,CANVAS_H);
 
-      // Level 3 background
       if (!drawCover(ctx, BG.l3, CANVAS_W, CANVAS_H)){
-        ctx.fillStyle="rgba(0,0,0,0.22)";
+        ctx.fillStyle="#10131a";
         ctx.fillRect(0,0,CANVAS_W,CANVAS_H);
       }
-      ctx.save(); ctx.globalAlpha=0.18; ctx.fillStyle="#000"; ctx.fillRect(0,0,CANVAS_W,CANVAS_H); ctx.restore();
+
+      ctx.save(); ctx.globalAlpha=0.06; ctx.fillStyle="#000"; ctx.fillRect(0,0,CANVAS_W,CANVAS_H); ctx.restore();
 
       ctx.strokeStyle="rgba(166,139,91,0.9)";
       ctx.lineWidth=2;
@@ -966,7 +997,7 @@
       ctx.font=`18px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
 
       for(const br of this.bricks){
-        ctx.fillStyle = (br.emoji==="⭐") ? "rgba(255,234,167,0.9)" : "rgba(255,248,220,0.9)";
+        ctx.fillStyle = (br.emoji==="⭐") ? "rgba(255,234,167,0.92)" : "rgba(255,248,220,0.92)";
         ctx.fillRect(br.x, br.y, br.w, br.h);
         ctx.strokeRect(br.x, br.y, br.w, br.h);
         ctx.fillStyle="#111";
@@ -986,30 +1017,28 @@
       ctx.font=`60px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
       ctx.fillText("🐰", this.paddle.x, this.paddle.y+this.PADDLE_H/2);
 
-      ctx.fillStyle="#7effff"; ctx.font="16px Arial";
-      ctx.textAlign="left";
-      ctx.fillText(`Punkte: ${this.score}`,10,20);
-      ctx.fillText(`🍀 Drops: ${this.powerUpsDropped}`,10,42);
-      ctx.textAlign="right";
-      ctx.fillText(`Leben: ${this.lives}`,CANVAS_W-10,20);
+      drawTopBar(ctx);
+      outlinedText(ctx, `Punkte: ${this.score}`, 10, 10, "left");
+      outlinedText(ctx, `Leben: ${this.lives}`, CANVAS_W-10, 10, "right");
+      outlinedText(ctx, `🍀 Drops: ${this.powerUpsDropped}`, 10, 32, "left");
     }
 
     finish(){
       if(this.done) return;
       this.done=true;
 
-      this.canvas.removeEventListener('mousedown', this._md);
-      this.canvas.removeEventListener('mousemove', this._mm);
-      this.canvas.removeEventListener('mouseup', this._mu);
-      this.canvas.removeEventListener('mouseleave', this._mu);
-      this.canvas.removeEventListener('touchstart', this._ts);
-      this.canvas.removeEventListener('touchmove', this._tm);
+      this.canvas.removeEventListener("mousedown", this._md);
+      this.canvas.removeEventListener("mousemove", this._mm);
+      this.canvas.removeEventListener("mouseup", this._mu);
+      this.canvas.removeEventListener("mouseleave", this._mu);
+      this.canvas.removeEventListener("touchstart", this._ts);
+      this.canvas.removeEventListener("touchmove", this._tm);
 
       this.onDone(this.score);
     }
   }
 
-  const wrapper = document.getElementById('easter-saga-wrapper');
+  const wrapper = document.getElementById("easter-saga-wrapper");
   new EasterSaga(wrapper);
 })();
 </script>
