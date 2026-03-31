@@ -243,16 +243,16 @@
       this.levelScores = [0,0,0];
 
       this.levels = [
-        { id:"eggcatch", title:"Level 1 – Easter Catch",
-          description:"Fange Eier 🥚 in 25 Sekunden.<br>Korb 🧺 per Drag frei bewegen (auch nach oben).<br>Stinker 🦨 geben -3.",
+        { id:"eggcatch", title:"Level 1 – Ostereier-Fangen",
+          description:"Fangt so viele Eier 🥚 in 25 Sekunden wie möglich.<br>Korb 🧺 mit gedrückter Maustaste frei bewegen.<br>Stinker 🦨 geben -3.",
           factory:(onDone)=> new LevelEggCatch(this,onDone)
         },
-        { id:"runner", title:"Level 2 – Easter Runner",
-          description:"Springen (Klick/Tippen/Space).<br>2 Leben, Treffer kostet 1 Leben.<br>Stinker 🦨 geben -4.",
+        { id:"runner", title:"Level 2 – Oster-Lauf",
+          description:"Weicht mit dem Hasen 🐰 den Hindernissen 🌵, 🪨 aus und sammelt so viele Eier 🥚 wie möglich! Springen (Mausklick oder Leertaste, Doppeklick = Doppelsprung).<br>2 Leben, Treffer kostet 1 Leben.<br>Stinker 🦨 geben -4.",
           factory:(onDone)=> new LevelRunner(this,onDone)
         },
-        { id:"brick", title:"Level 3 – Brick Breaker+",
-          description:"2 Leben. 🍀 Multi‑Ball kommt garantiert. ⭐ braucht 2 Hits.<br>🍀 sammeln → 2 Extra‑Bälle!",
+        { id:"brick", title:"Level 3 – Ostereier-Brecher",
+          description:"Köpft die Eier 🥚 mit dem Hasen 🐰 in die Luft und zerstört alle Steine. 2 Leben, 🍀 = Multi‑Ball, ⭐ benötigt 2 Treffer."",
           factory:(onDone)=> new LevelBrick(this,onDone)
         }
       ];
@@ -297,11 +297,11 @@
 
       const ov = createEl("div","saga-overlay");
       ov.innerHTML = `
-        <h1>EASTER SAGA</h1>
+        <h1>Oster Games</h1>
         <p>
-          Start im Zimmer — dann zoomen wir in den TV rein.<br>
-          Danach spielst du die Level groß im Fullscreen.
-          <br><br><b>Gewinnspiel:</b> Am Ende bitte unbedingt deinen Score einsenden.
+          Willkommen zu den diesjährigen medbo Oster Games! <br>
+          Helft dem Osterhase in 3 unterschiedlichen Leveln das Osterfest zu retten...
+          <br><br><b>Gewinnspiel:</b> Am Ende bitte unbedingt den Highscore einsenden.
         </p>
         <video class="saga-video" autoplay muted playsinline loop>
           <source src="${URLS.introVideo}" type="video/mp4">
