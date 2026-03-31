@@ -1,5 +1,11 @@
 <!-- ==============================================================
      EASTER SAGA – CINEMATIC TV ZOOM → FULLSCREEN PLAY (Final + Basket Glow)
+     Änderungen:
+     - Finalscreen: "Nochmal versuchen!" sofort sichtbar -> zurück zum Startscreen + Neustart
+     - Level 1: mehr Eier (höhere Spawnrate + gelegentlicher Doppelspawn, etwas weniger Stinker)
+     - Level 2: Starttempo runter, Zeitlimit entfernt (kein Timer/keine Zeitanzeige; endet nur bei 0 Leben)
+     - Level 3: Hasen-Steuerung zusätzlich mit Pfeiltasten links/rechts
+     - Fix: defensive Null-Checks für nicht vorhandene Buttons (#saga-sent, #saga-zoomin)
 ============================================================== -->
 <div id="easter-saga-wrapper"></div>
 
@@ -248,11 +254,11 @@
           factory:(onDone)=> new LevelEggCatch(this,onDone)
         },
         { id:"runner", title:"Level 2 – Oster-Lauf",
-          description:"Weicht mit dem Hasen 🐰 den Hindernissen 🌵, 🪨 aus und sammelt so viele Eier 🥚 wie möglich! Springen (Mausklick oder Leertaste, Doppeklick = Doppelsprung).<br> Ihr habt 2 Leben, Treffer kostet 1 Leben.<br>Stinker 🦨 geben -4.",
+          description:"Weicht mit dem Hasen 🐰 den Hindernissen 🌵, 🪨 aus und sammelt so viele Eier 🥚 wie möglich! Springen (Mausklick oder Leertaste, Doppelklick = Doppelsprung).<br>Ihr habt 2 Leben, Treffer kostet 1 Leben.<br>Stinker 🦨 geben -4.",
           factory:(onDone)=> new LevelRunner(this,onDone)
         },
         { id:"brick", title:"Level 3 – Ostereier-Brecher",
-          description:"Köpft die Eier 🥚 mit dem Hasen 🐰 in die Luft und zerstört alle Steine. 🐰 mit gedrückter Maustaste frei bewegen.<br>Ihr habt 2 Leben, 🍀 = Multi‑Ball, ⭐ benötigt 2 Treffer.",
+          description:"Köpft die Eier 🥚 mit dem Hasen 🐰 in die Luft und zerstört alle Steine. 🐰 mit gedrückter Maustaste frei bewegen oder mit den Pfeiltasten bewegen.<br>Ihr habt 2 Leben, 🍀 = Multi‑Ball, ⭐ benötigt 2 Treffer.",
           factory:(onDone)=> new LevelBrick(this,onDone)
         }
       ];
@@ -383,6 +389,11 @@
           (Das Spiel kann beliebig oft von vorne gestartet werden!)
         </div>
 
+        <!-- NEU: sofort sichtbar -->
+        <div class="saga-row" style="margin-top:12px">
+          <button id="saga-try-again">Nochmal versuchen!</button>
+        </div>
+
         <div id="saga-after-submit">
           <div class="saga-row">
             <button id="saga-save">Score lokal speichern</button>
@@ -420,7 +431,11 @@
         $("#saga-after-submit").style.display = "block";
         $("#saga-lock").style.display = "none";
         $("#saga-submit").disabled = true;
-        $("#saga-sent").disabled = true;
+
+        // defensive: these elements may not exist
+        const sentBtn = $("#saga-sent");
+        if (sentBtn) sentBtn.disabled = true;
+
         $("#saga-submit").textContent = "Danke! Score wurde eingesendet";
         this.renderHighScore();
       };
@@ -433,22 +448,34 @@
           return;
         }
         window.location.href = buildMail();
+        // Hinweis: mailto kann nicht zuverlässig erkannt werden -> unlock optional über separaten Button
+        // unlockAfterSubmit();
       };
 
-      $("#saga-sent").onclick = () => unlockAfterSubmit();
+      // sofort sichtbar: zurück zum Startscreen
+      $("#saga-try-again").onclick = () => {
+        this.destroyCanvas();
+        this.showStartScreen();
+      };
+
+      // optionaler Button existiert bei dir aktuell nicht -> Null-check
+      const sentBtn = $("#saga-sent");
+      if (sentBtn) sentBtn.onclick = () => unlockAfterSubmit();
+
       $("#saga-save").onclick = ()=>{
         const name = ($("#saga-name").value || "Anonymous").trim();
         this.saveHighScore(name, this.totalScore);
         this.renderHighScore();
         $("#saga-save").disabled = true;
       };
+
       $("#saga-restart").onclick = ()=>{
         this.destroyCanvas();
         this.showStartScreen();
       };
-      $("#saga-zoomin").onclick = ()=>{
-        this.wrapper.classList.add("zoom-tv");
-      };
+
+      const zoomBtn = $("#saga-zoomin");
+      if (zoomBtn) zoomBtn.onclick = ()=>{ this.wrapper.classList.add("zoom-tv"); };
     }
 
     loadHighScores(){
@@ -476,7 +503,7 @@
   }
 
   /* =================================================================
-     LEVEL 1 – EGG CATCH (Basket Glow added)
+     LEVEL 1 – EGG CATCH (more eggs)
   ================================================================== */
   class LevelEggCatch{
     constructor(saga,onDone){
@@ -484,7 +511,10 @@
       this.ctx=saga.ctx; this.canvas=saga.canvas;
 
       this.items=[]; this.score=0; this.timeLeft=25;
-      this.spawnMs=700; this.lastSpawn=0; this.lastTick=performance.now();
+
+      // MEHR EIER:
+      this.spawnMs=520; // vorher 700
+      this.lastSpawn=0; this.lastTick=performance.now();
 
       this.basket={x:CANVAS_W/2,y:CANVAS_H-40,w:90,h:60};
       this.drag={active:false,offsetX:0,offsetY:0};
@@ -528,14 +558,19 @@
       this.canvas.addEventListener("pointerup", this._pu, {passive:false});
       this.canvas.addEventListener("pointercancel", this._pu, {passive:false});
       this.canvas.addEventListener("pointerleave", this._pu, {passive:false});
+      this.canvas.addEventListener("pointerleave", this._pu, {passive:false});
 
       this._timerId=setInterval(()=>{ this.timeLeft--; if(this.timeLeft<=0) this.finish(); },1000);
       requestAnimationFrame(()=>this.loop());
     }
 
     spawnItem(){
-      const bad = Math.random()<0.18;
-      this.items.push({x:Math.random()*(CANVAS_W-20)+10,y:-10,vy:(bad?2.6:2.2)+Math.random()*1.6,r:14,bad});
+      const spawnOne = () => {
+        const bad = Math.random()<0.14; // vorher 0.18 (etwas weniger Stinker)
+        this.items.push({x:Math.random()*(CANVAS_W-20)+10,y:-10,vy:(bad?2.6:2.2)+Math.random()*1.6,r:14,bad});
+      };
+      spawnOne();
+      if (Math.random() < 0.18) spawnOne(); // gelegentlicher Doppelspawn
     }
 
     loop(){
@@ -580,14 +615,12 @@
       ctx.textAlign="center"; ctx.textBaseline="middle";
       for(const it of this.items) ctx.fillText(it.bad?"🦨":"🥚", it.x, it.y);
 
-      // Basket with glow (NEW)
+      // Basket with glow
       ctx.save();
-      // cyan glow + slight pulsing so it's visible from the start
       const pulse = 0.65 + 0.35 * Math.sin(performance.now() / 260);
       ctx.shadowColor = `rgba(126,255,255,${0.75 * pulse})`;
       ctx.shadowBlur = 22 + 10 * pulse;
 
-      // optional outline stroke behind emoji for extra contrast
       ctx.font=`38px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
       ctx.lineWidth = 6;
       ctx.strokeStyle = "rgba(0,0,0,0.65)";
@@ -618,7 +651,7 @@
   }
 
   /* =================================================================
-     LEVEL 2 – RUNNER (FULL OPAQUE)
+     LEVEL 2 – RUNNER (start slower + NO time limit)
   ================================================================== */
   class LevelRunner{
     constructor(saga,onDone){
@@ -628,11 +661,18 @@
       this.GROUND_Y=CANVAS_H-40;
       this.player={x:80,y:this.GROUND_Y-18,vy:0,w:36,h:36,onGround:true,jumps:0,maxJumps:2};
       this.obstacles=[]; this.eggs=[]; this.bads=[];
-      this.score=0; this.timeLeft=25;
+      this.score=0;
+
+      // ZEITLIMIT ENTFERNT:
+      // this.timeLeft = 25;
+      this._timerId = null;
 
       this.lives=2; this.invulnMs=0;
 
-      this.baseSpeed=2.85; this.speed=this.baseSpeed; this.speedRamp=0.0032; this.maxSpeed=7.4;
+      // Starttempo runter:
+      this.baseSpeed=2.15; this.speed=this.baseSpeed;
+
+      this.speedRamp=0.0032; this.maxSpeed=7.4;
       this.lastSpawnObs=0; this.lastSpawnEgg=0; this.lastSpawnBad=0;
       this.lastTick=performance.now();
 
@@ -654,7 +694,6 @@
       this._kd=(e)=>{ if(e.code==="Space") this._jump(); };
       window.addEventListener("keydown", this._kd);
 
-      this._timerId=setInterval(()=>{ this.timeLeft--; if(this.timeLeft<=0) this.finish(); },1000);
       requestAnimationFrame(()=>this.loop());
     }
 
@@ -786,13 +825,13 @@
       drawTopBar(ctx);
       outlinedText(ctx, `Punkte: ${this.score}`, 10, 10, "left");
       outlinedText(ctx, `Leben: ${this.lives}`, 10, 32, "left");
-      outlinedText(ctx, `Zeit: ${this.timeLeft}s`, CANVAS_W-10, 10, "right");
+      // Zeit-Anzeige entfernt
     }
 
     finish(){
       if(this.done) return;
       this.done=true;
-      clearInterval(this._timerId);
+      if (this._timerId) clearInterval(this._timerId);
       this.canvas.removeEventListener("mousedown", this._md);
       this.canvas.removeEventListener("touchstart", this._ts);
       window.removeEventListener("keydown", this._kd);
@@ -801,7 +840,7 @@
   }
 
   /* =================================================================
-     LEVEL 3 – BRICK
+     LEVEL 3 – BRICK (arrow keys left/right)
   ================================================================== */
   class LevelBrick{
     constructor(saga,onDone){
@@ -846,6 +885,20 @@
       this.canvas.addEventListener("touchstart", this._ts, {passive:false});
       this.canvas.addEventListener("touchmove", this._tm, {passive:false});
 
+      // NEU: Pfeiltasten-Steuerung
+      this.keys = { left:false, right:false };
+      this.keySpeed = 8.2; // px pro Frame
+      this._kd = (e)=>{
+        if (e.code === "ArrowLeft") this.keys.left = true;
+        if (e.code === "ArrowRight") this.keys.right = true;
+      };
+      this._ku = (e)=>{
+        if (e.code === "ArrowLeft") this.keys.left = false;
+        if (e.code === "ArrowRight") this.keys.right = false;
+      };
+      window.addEventListener("keydown", this._kd);
+      window.addEventListener("keyup", this._ku);
+
       requestAnimationFrame(()=>this.loop());
     }
 
@@ -885,6 +938,10 @@
     loop(){ this.update(); this.render(); if(!this.done) requestAnimationFrame(()=>this.loop()); }
 
     update(){
+      // Pfeiltasten bewegen Paddle (zusätzlich zu Maus/Touch)
+      if (this.keys.left)  this.paddle.x = clamp(this.paddle.x - this.keySpeed, this.PADDLE_W/2, CANVAS_W - this.PADDLE_W/2);
+      if (this.keys.right) this.paddle.x = clamp(this.paddle.x + this.keySpeed, this.PADDLE_W/2, CANVAS_W - this.PADDLE_W/2);
+
       this.speedMul=Math.min(1.55, this.speedMul + this.speedMulRamp);
 
       for(const b of this.balls){
@@ -1022,6 +1079,10 @@
       this.canvas.removeEventListener("mouseleave", this._mu);
       this.canvas.removeEventListener("touchstart", this._ts);
       this.canvas.removeEventListener("touchmove", this._tm);
+
+      // NEU: Keyboard cleanup
+      window.removeEventListener("keydown", this._kd);
+      window.removeEventListener("keyup", this._ku);
 
       this.onDone(this.score);
     }
