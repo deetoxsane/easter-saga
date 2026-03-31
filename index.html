@@ -348,7 +348,7 @@
       this.showOverlay(
         `Level ${idx+1} abgeschlossen`,
         `Level‑Score: <b>${score}</b><br>Gesamtscore bisher: <b>${this.totalScore}</b>`,
-        last ? "Zum Finale" : `Weiter zu Level ${idx+2}`,
+        last ? "Spiel abschließen" : `Weiter zu Level ${idx+2}`,
         ()=>{ last ? this.showFinalScreen() : (this.levelIndex++, this.showLevelIntro()); }
       );
     }
@@ -381,13 +381,6 @@
         <div id="saga-lock">
           <b>Wichtig:</b> Um teilzunehmen, sende bitte deinen Score ab.<br>
           Danach kannst du den Highscore ansehen und nochmal spielen.
-        </div>
-
-        <div class="saga-row" style="margin-top:10px">
-          <button id="saga-sent">Ich habe gesendet ✅</button>
-          <button id="saga-zoomin" style="background:#15212a;color:#cfeaff;box-shadow:none;border:1px solid rgba(126,255,255,0.25);">
-            Wieder in den TV zoomen
-          </button>
         </div>
 
         <div id="saga-after-submit">
