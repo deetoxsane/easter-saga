@@ -248,11 +248,11 @@
           factory:(onDone)=> new LevelEggCatch(this,onDone)
         },
         { id:"runner", title:"Level 2 – Oster-Lauf",
-          description:"Weicht mit dem Hasen 🐰 den Hindernissen 🌵, 🪨 aus und sammelt so viele Eier 🥚 wie möglich! Springen (Mausklick oder Leertaste, Doppeklick = Doppelsprung).<br>2 Leben, Treffer kostet 1 Leben.<br>Stinker 🦨 geben -4.",
+          description:"Weicht mit dem Hasen 🐰 den Hindernissen 🌵, 🪨 aus und sammelt so viele Eier 🥚 wie möglich! Springen (Mausklick oder Leertaste, Doppeklick = Doppelsprung).<br> Ihr habt 2 Leben, Treffer kostet 1 Leben.<br>Stinker 🦨 geben -4.",
           factory:(onDone)=> new LevelRunner(this,onDone)
         },
         { id:"brick", title:"Level 3 – Ostereier-Brecher",
-          description:"Köpft die Eier 🥚 mit dem Hasen 🐰 in die Luft und zerstört alle Steine. 2 Leben, 🍀 = Multi‑Ball, ⭐ benötigt 2 Treffer.",
+          description:"Köpft die Eier 🥚 mit dem Hasen 🐰 in die Luft und zerstört alle Steine. 🐰 mit gedrückter Maustaste frei bewegen.<br>Ihr habt 2 Leben, 🍀 = Multi‑Ball, ⭐ benötigt 2 Treffer.",
           factory:(onDone)=> new LevelBrick(this,onDone)
         }
       ];
@@ -373,14 +373,14 @@
         </div>
 
         <div class="saga-row" style="margin-top:12px">
-          <button id="saga-submit">Score einsenden (Gewinnspiel)</button>
+          <button id="saga-submit">Punktestand einsenden (Gewinnspiel)</button>
         </div>
 
         <div id="saga-submit-hint">Empfänger: <b>medbonet@medbo.de</b></div>
 
         <div id="saga-lock">
-          <b>Wichtig:</b> Um teilzunehmen, sende bitte deinen Score ab.<br>
-          Danach kannst du den Highscore ansehen und nochmal spielen.
+          <b>Wichtig:</b> Um teilzunehmen, bitte den Punktestand per Mail einsenden (oberer Button).<br>
+          (Das Spiel kann beliebig oft von vorne gestartet werden!)
         </div>
 
         <div id="saga-after-submit">
