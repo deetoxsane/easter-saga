@@ -519,7 +519,7 @@
       this.basket={x:CANVAS_W/2,y:CANVAS_H-40,w:90,h:60};
       this.drag={active:false,offsetX:0,offsetY:0};
 
-      this.catchSound=new Audio("https://freesound.org/data/previews/331/331904_3248244-lq.mp3");
+      this.catchSound=new Audio("https://www.medbo.de/fileadmin/user_upload/sounds/dragon-studio-swoosh-1-376872.mp3");
       this.catchSound.volume=0.05;
 
       this._getPos=(cx,cy)=>{
@@ -676,9 +676,9 @@
       this.lastSpawnObs=0; this.lastSpawnEgg=0; this.lastSpawnBad=0;
       this.lastTick=performance.now();
 
-      this.jumpSound=new Audio("https://freesound.org/data/previews/331/331904_3248244-lq.mp3"); this.jumpSound.volume=0.04;
-      this.pickSound=new Audio("https://freesound.org/data/previews/331/331904_3248244-lq.mp3"); this.pickSound.volume=0.05;
-      this.hitSound=new Audio("https://freesound.org/data/previews/331/331904_3248244-lq.mp3");  this.hitSound.volume=0.04;
+      this.jumpSound=new Audio("https://www.medbo.de/fileadmin/user_upload/sounds/chieuk-coin-257878.mp3"); this.jumpSound.volume=0.04;
+      this.pickSound=new Audio("hhttps://www.medbo.de/fileadmin/user_upload/sounds/dragon-studio-swoosh-1-376872.mp3"); this.pickSound.volume=0.05;
+      this.hitSound=new Audio("https://www.medbo.de/fileadmin/user_upload/sounds/taolao111-am-bich-3-500036.mp3");  this.hitSound.volume=0.04;
 
       this._jump=()=>{
         if(this.player.jumps<this.player.maxJumps){
@@ -863,8 +863,8 @@
       this.bricksKilled=0;
       this.powerUpsDropped=0;
 
-      this.hit=new Audio("https://freesound.org/data/previews/331/331904_3248244-lq.mp3"); this.hit.volume=0.04;
-      this.brk=new Audio("https://freesound.org/data/previews/331/331904_3248244-lq.mp3"); this.brk.volume=0.05;
+      this.hit=new Audio("https://www.medbo.de/fileadmin/user_upload/sounds/universfield-classic-punch-impact-352711.mp3"); this.hit.volume=0.04;
+      this.brk=new Audio("https://www.medbo.de/fileadmin/user_upload/sounds/taolao111-am-bich-3-500036.mp3"); this.brk.volume=0.05;
 
       const moveToX=(pageX)=>{
         const rect=this.canvas.getBoundingClientRect();
